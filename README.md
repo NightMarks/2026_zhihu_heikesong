@@ -1,147 +1,264 @@
-# 沙游心语 · 沙盘 × 知乎（已接入知乎 API）
+# 沙游心语 × 知乎
 
-在你原型的基础上接入了知乎开放平台：**用户登录、内容拉取、AI 报告、互动回归知乎**。
+一个将沙盘游戏、知乎内容探索与 AI 互动叙事结合起来的 Web Demo。
 
----
+玩家从随机沙具出发，通过阅读和回应知乎内容获得灵感值、解锁更多沙具，在沙盘中自由布置，并生成温和、非诊断式的 AI 沙盘报告。完成的作品可以发布到游戏内社区展示和互动。
 
-## 先说清楚一件事
+> 本项目参加知乎黑客松「跨次元游乐场：游戏与互动叙事」赛道。
 
-你要求「赞同等互动按钮回归到知乎」。我把官方文档和 CLI 能力逐条核对过，结论是：
+## 核心玩法
 
-| 能力 | 官方端点 | 能否实现 |
-|---|---|---|
-| 知乎账号登录 | `openapi.zhihu.com/authorize` + `/access_token` | ✅ **已实现** |
-| 站内搜索 | `/api/v1/content/zhihu_search` | ✅ **已实现** |
-| 热榜 | `/api/v1/content/hot_list` | ✅ **已实现** |
-| 直答（AI 报告） | `/api/v1/agent/chat/completions` | ✅ **已实现** |
-| 读本人创作/收藏/关注 | `/api/v1/user/contents` 等 | ✅ **已实现** |
-| **代用户点赞 / 反对** | — | ❌ **无此端点** |
-| **代用户评论 / 分享 / 发想法** | — | ❌ **无此端点** |
-
-开放平台是**纯读取**的。没有任何写入接口，OAuth 也只发读权限的 token。
-任何声称「点一下按钮就在知乎点了赞」的实现，要么是在骗用户，要么是在爬私有接口——
-后者违反知乎用户协议，黑客松上被问一句就穿帮。
-
-### 所以「互动回归知乎」是这样做的
-
-```
-① 用知乎账号登录（真 OAuth）
-② 点「去知乎读原文」→ 新标签打开真实知乎页面
-③ 你在知乎 App/网页里真实地赞同、评论、发想法
-④ 回到游戏，把自己那条创作的链接贴回来
-⑤ 服务端调 /api/v1/user/contents 核对：这条确实属于当前登录账号
-⑥ 校验通过 → 发放 +3 灵感值
+```text
+随机发现沙具 → 探索知乎内容 → 获得灵感值 → 解锁沙具
+→ 自由布置沙盘 → 生成 AI 报告 → 发布到游戏社区
 ```
 
-**互动 100% 真实发生在知乎**，我们只做归属校验。
-比假按钮更有说服力，而且完全合规。
+### 随机沙具
 
----
+首页随机展示人物、建筑、交通工具、自然元素、象征物和幻想生物等沙具。玩家可以从感兴趣的沙具进入对应主题。
 
-## 运行
+### 知乎探索与解锁
 
-```bash
-cd shayu-zhihu
-npm install
-cp .env.example .env     # 填入凭证（见下）
-npm start                # → http://127.0.0.1:3000
+游戏可以读取知乎搜索、热榜和用户内容。用户阅读后可以记录感受并获得灵感值，也可以前往知乎完成真实创作，再把内容链接带回游戏进行归属验证。
+
+知乎站内的赞同、评论和发布必须由用户本人完成。本项目不会模拟或绕过知乎未开放的写入接口。
+
+### 沙盘与 AI 报告
+
+已解锁的沙具会进入沙具库，可以放入沙盘、移动和删除。游戏根据沙具类型、数量、位置、密度和整体结构生成氛围描述、关系观察、象征性解读和开放问题。
+
+报告不构成心理诊断，也不能替代专业心理咨询或医疗建议。
+
+### 游戏内社区
+
+玩家可以发布沙盘和报告摘要，并进行点赞、收藏、评论和分享。目前社区数据只保存在当前浏览器，属于 Demo 功能，不是正式的多人在线社区。
+
+## 当前功能
+
+- 随机沙具、分类探索、灵感值和解锁
+- 知乎搜索、热榜和离线示例内容
+- 知乎 OAuth 后端框架；真实登录需要公网 HTTPS
+- 用户创作链接归属验证；需要可用数据源和用户身份
+- 沙具库与拖拽式沙盘
+- 本地规则报告与知乎 AI 报告接口
+- 游戏内本地社区和浏览器自动保存
+- API 不可用时的降级处理
+
+## 技术结构
+
+```text
+浏览器（页面、交互、localStorage）
+             ↓ /api/*
+Node.js + Express（内容代理、OAuth、验证、AI 报告）
+             ↓
+知乎开放平台 / 本地示例数据
 ```
-
-### 两种凭证模式
-
-**A · 直连 API（推荐用于部署）**
-
-在 `.env` 填 `ZHIHU_ACCESS_SECRET`，到 https://developer.zhihu.com/profile 获取。
-
-**B · 本地 CLI（本机开发最省事）**
-
-如果你本机已经用 `zhihu-cli` 完成过授权，**不用填任何东西**——
-服务端会自动探测并复用系统钥匙串里的凭证。启动时会打印：
-
-```
-内容数据源: ✓ 本地已授权 CLI
-```
-
-**什么都没配也能跑**：自动降级到内置示例数据，UI 会诚实标注「离线示例」。
-
-### OAuth 登录（可选）
-
-网页访客用知乎账号登录需要 `app_id` / `app_key`，发邮件到
-`product-platform@zhihu.com` 申请，主题写「<公司名>申请接入知乎 OAuth 服务」。
-
-没配也不影响：本地 CLI 模式下服务端本身就是「本人账号」，回链校验照样可用。
-
----
-
-## 相比原型改了什么
-
-| 原型 | 现在 |
-|---|---|
-| 写死的假帖子数据 | 调 `zhihu_search` 拉**真实内容**，含作者、认证、赞数、精选评论 |
-| 点「赞同」+1💡（本地计数） | 跳转真实知乎原文；互动在知乎完成；**回链校验归属**才给分 |
-| 假的「发布想法」输入框 | 引导去知乎发布，回来贴链接，服务端核对确属本人 |
-| 报告纯本地模板 | **知乎直答**生成，本地规则引擎兜底（直答挂了不白屏） |
-| 无登录 | 真实 **OAuth 授权码流程** |
-| 无 | **能力状态条**：如实告诉用户哪些是真的、哪些平台没开放 |
-
----
 
 ## 文件结构
 
+```text
+2026_zhihu_heikesong/
+├─ public/
+│  ├─ index.html       页面结构
+│  ├─ style.css        页面和沙盘样式
+│  └─ app.js           前端游戏逻辑
+├─ server/
+│  ├─ index.js         Express 服务、路由、OAuth 和验证
+│  ├─ zhihu.js         知乎开放平台 API 客户端
+│  └─ cli-source.js    本地 zhihu-cli 备用数据源
+├─ docs/               后续开发计划
+├─ .env.example        环境变量模板
+├─ .gitignore          Git 忽略规则
+├─ package.json        项目命令和直接依赖
+├─ package-lock.json   精确依赖版本
+└─ README.md           项目说明
 ```
-shayu-zhihu/
-├── server/
-│   ├── index.js        路由：OAuth、内容代理、回链校验、报告
-│   ├── zhihu.js        开放平台客户端（Bearer / OAuth / 各接口）
-│   └── cli-source.js   本地 CLI 数据源适配器（可选回退）
-├── public/
-│   ├── index.html      页面结构
-│   ├── style.css       样式（沿用你的视觉设计）
-│   └── app.js          前端逻辑：解锁、拖拽、报告、社群
-└── .env.example
+
+`node_modules/` 由 npm 自动生成，不提交到 GitHub。
+
+## 环境要求
+
+- Node.js 18 或更高版本，推荐当前 LTS
+- npm
+- Chrome、Edge 或其他现代浏览器
+
+检查环境：
+
+```powershell
+node --version
+npm --version
 ```
 
----
+Windows 安装 Node.js LTS：
 
-## 实测记录
+```powershell
+winget install --id OpenJS.NodeJS.LTS -e
+```
 
-用真实知乎账号跑通，四种情况都正确：
+安装后需要关闭并重新打开 PowerShell，让 PATH 生效。
 
-| 场景 | 结果 |
+## 获取与运行
+
+### 1. 获取代码
+
+```powershell
+git clone https://github.com/NightMarks/2026_zhihu_heikesong.git
+cd 2026_zhihu_heikesong
+```
+
+如果代码已经在电脑上，只需要进入自己的项目目录，不要求使用固定盘符：
+
+```powershell
+cd E:\2026_zhihu_heikesong
+```
+
+### 2. 安装依赖
+
+```powershell
+npm ci
+```
+
+首次安装通常需要联网下载依赖。如果正在新增或升级依赖，则使用 `npm install`。
+
+### 3. 启动
+
+```powershell
+npm start
+```
+
+看到下面的信息表示启动成功：
+
+```text
+沙游心语 → http://127.0.0.1:3000
+```
+
+浏览器打开 <http://127.0.0.1:3000>。停止服务时，在 PowerShell 中按 `Ctrl+C`。
+
+开发模式使用 `npm run dev`。服务端文件变化后会自动重启，修改前端文件后刷新浏览器即可。
+
+## 运行模式
+
+| 模式 | 需要配置 | 可以使用 | 暂不可用 |
+|---|---|---|---|
+| 无知乎凭证 | 无 | 沙具、解锁、沙盘、本地报告、本地社区、示例内容 | 实时内容、真实登录、归属验证 |
+| 内容 API | `ZHIHU_ACCESS_SECRET` | 上述功能、搜索、热榜、AI 报告 | OAuth 登录和登录用户归属验证 |
+| 完整在线 | Access Secret、App ID、App Key、公网 HTTPS 回调 | 内容 API、OAuth、用户内容、归属验证 | 平台未开放的代点赞、代评论、代发布 |
+| 本地 CLI 备用源 | 已授权 CLI | 设计上用于内容读取和本人内容校验 | Windows 自动探测尚未完成 |
+
+这里的“无知乎凭证”表示不连接知乎 API，不代表首次安装可以完全断网；`npm ci` 仍可能需要网络。
+
+### 检查当前模式
+
+启动后访问 <http://127.0.0.1:3000/api/capabilities>。
+
+- `sourceType: "none"`：使用示例内容。
+- `sourceType: "api"`：使用 Access Secret 直连内容 API。
+- `sourceType: "cli"`：使用本地 CLI。
+- `oauthReady: false`：当前环境不能完成 OAuth 登录。
+- `loggedIn: true`：当前浏览器已经登录。
+
+## 配置知乎开放平台
+
+复制模板：
+
+```powershell
+Copy-Item .env.example .env
+```
+
+编辑本地 `.env`：
+
+```dotenv
+ZHIHU_ACCESS_SECRET=
+ZHIHU_APP_ID=
+ZHIHU_APP_KEY=
+ZHIHU_REDIRECT_URI=https://your-domain.example/auth/callback
+PORT=3000
+```
+
+| 配置 | 用途 |
 |---|---|
-| 贴自己真实发布的想法 | ✅ 通过，+3💡，返回标题与原文链接 |
-| 同一条重复领取 | ✅ 拒绝「已经领取过了」 |
-| 贴别人的文章 | ✅ 拒绝「你的创作里没有找到这条」 |
-| 贴非知乎链接 | ✅ 拒绝「无法识别这个链接」 |
+| `ZHIHU_ACCESS_SECRET` | 搜索、热榜和 AI 报告等内容 API |
+| `ZHIHU_APP_ID` | 知乎 OAuth 应用标识 |
+| `ZHIHU_APP_KEY` | OAuth 服务端秘钥 |
+| `ZHIHU_REDIRECT_URI` | OAuth 完成后的公网 HTTPS 回调 |
+| `PORT` | 服务端口，默认 3000 |
 
-直答报告实测输出（节选）：
+真实秘钥只能放在 `.env` 或部署平台的 Secret 中，不得写入 `public/`、README、截图或提交记录。`.env` 已被 `.gitignore` 忽略。
 
-> 这个沙盘很安静。五件沙具，不多不少，像一段被小心安放的时光……
-> 那只船看起来有些独立，你觉得它要去哪里，还是刚刚靠岸？
+### OAuth 说明
 
-严守非诊断边界，没有任何疾病名或结论式判断。
+真实 OAuth 登录需要先将站点部署到公网 HTTPS，并在知乎开放平台登记完全一致的回调地址。`http://127.0.0.1:3000/auth/callback` 只是服务端本地默认值，当前代码会判定它不能用于真实 OAuth。
 
----
+### zhihu-cli 说明
 
-## 安全要点
+`server/cli-source.js` 当前仍包含队友 macOS 环境的适配逻辑，在 Windows 上不能保证自动发现 CLI。Windows 开发现阶段建议优先配置 `ZHIHU_ACCESS_SECRET`，跨平台 CLI 适配已列入开发计划。
 
-- `Access Secret`、`app_key`、OAuth token **只存在服务端**，前端拿不到
-- 浏览器只持有一个 `httpOnly` 的 `sid` cookie
-- `.env` 已在 `.gitignore`，别提交
-- 回链校验有防重复领取（`session.claimed`）
+## 服务端接口
 
-生产部署还需要：会话换 Redis、`sid` 加 `secure`、给校验接口加频率限制。
+| 方法 | 路径 | 功能 |
+|---|---|---|
+| GET | `/api/capabilities` | 查询数据源、OAuth 和登录状态 |
+| GET | `/api/search` | 搜索知乎内容 |
+| GET | `/api/hot` | 获取知乎热榜 |
+| GET | `/api/me/contents` | 获取当前用户创作内容 |
+| POST | `/api/verify-contribution` | 验证内容归属并发放奖励 |
+| POST | `/api/report` | 生成沙盘报告 |
+| GET | `/auth/login` | 开始知乎 OAuth 登录 |
+| GET | `/auth/callback` | 接收 OAuth 回调 |
+| POST | `/auth/logout` | 退出登录 |
 
----
+## 数据保存与当前限制
 
-## 答辩时怎么说
+- 沙盘、灵感值、解锁记录和社区帖子保存在浏览器 `localStorage`。
+- 登录 Session 和已领取记录保存在 Node.js 服务器内存。
+- 清除浏览器数据会丢失本地作品，重启服务会清除登录状态。
+- Windows CLI 自动探测尚未完成。
+- OAuth 需要公网 HTTPS，安全流程和生产 Cookie 仍需加固。
+- 社区暂时不是跨设备、多人共享社区。
+- 前端逻辑集中在较大的 `public/app.js` 中。
+- 项目还没有自动测试和持续集成。
+- 开放平台接口和模型名应在发布前依据最新文档复核。
 
-如果评委问「为什么不能直接在你们页面点赞」——这是加分题：
+## 常见问题
 
-> 知乎开放平台目前只提供读取能力，没有开放写入接口。
-> 我们没有选择爬私有接口，而是设计了「跳转真实互动 + 回链归属校验」：
-> 用户的每一次赞同、评论、创作都真实发生在知乎站内，
-> 我们通过 user_contents 校验归属后发放奖励。
-> 这样既保证互动真实，也完全合规。
+### `node` 或 `npm` 无法识别
 
-比任何假按钮都有说服力。
+确认 Node.js 已安装，然后关闭并重新打开 PowerShell。
+
+### 端口 3000 被占用
+
+在 `.env` 中设置 `PORT=3001`，然后访问 `http://127.0.0.1:3001`。
+
+### 页面显示“离线示例”
+
+这是无知乎凭证模式的正常行为，不代表启动失败。访问 `/api/capabilities` 可以确认数据源。
+
+### 是否上传 `node_modules`
+
+不上传。其他开发者运行 `npm ci` 即可重新生成。
+
+## 后续开发
+
+完整计划见 [后续开发实施计划](docs/superpowers/plans/2026-09-13-hackathon-development-roadmap.md)。优先顺序：
+
+1. 建立自动测试基线。
+2. 修复 Windows 知乎数据源。
+3. 加固 OAuth `state` 和 Session。
+4. 稳定知乎 API 与 AI 报告。
+5. 拆分前端并增强沙盘操作。
+6. 实现作品和社区持久化。
+7. 完成 HTTPS 部署和演示彩排。
+
+## 团队协作
+
+```powershell
+git pull --rebase origin main
+git switch -c feature/功能名称
+# 修改并验证功能
+git status
+git add 修改过的文件
+git commit -m "feat: 简短说明"
+git push -u origin feature/功能名称
+```
+
+提交前确认 `.env`、`node_modules` 和日志没有进入 Git。
