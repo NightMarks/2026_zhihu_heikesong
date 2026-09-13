@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>沙游心语 × 知乎 · 沙盘游戏</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo"><span class="mark">🏝️</span>沙游心语<small>沙盘 × 知乎</small></div>
+  <nav class="nav" id="nav">
+    <button data-view="explore" class="active">探索沙具</button>
+    <button data-view="tray">我的沙盘</button>
+    <button data-view="report">沙盘报告</button>
+    <button data-view="community">心语社群</button>
+  </nav>
+  <div class="top-right">
+    <span class="insp-chip">💡 灵感值 <b id="insp-total">0</b></span>
+    <div id="auth-slot"></div>
+  </div>
+</header>
+
+<main>
+  <!-- ============ 探索沙具 ============ -->
+  <section class="view active" id="view-explore">
+    <div class="welcome-banner">
+      <h1>今天，你的内心想摆放点什么？</h1>
+      <p>游戏从一组<b>随机出现的沙具</b>开始。点选任意吸引你的沙具，会看到与之相关的<b>真实知乎内容</b>；
+         去知乎读完、回应、写下你自己的想法，再回来把创作链接贴回，就能解锁更多沙具。</p>
+    </div>
+
+    <!-- 能力状态条：诚实告诉用户现在哪些是真的 -->
+    <div id="cap-bar"></div>
+
+    <div class="shuffle-row">
+      <div class="section-title" style="margin:0">🎲 随机沙具开场 <span class="sub">点击任意沙具，看看它背后的人间</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="shuffleRandom()">🔄 换一批</button>
+    </div>
+    <div class="random-grid" id="random-grid"></div>
+
+    <div style="margin-top:34px" class="section-title">📚 沙具大类 <span class="sub">读知乎内容、去知乎真实回应，解锁该类沙具</span></div>
+    <div class="hint" style="margin-top:2px">
+      读完一篇写下感受 <b>+1 💡</b>；在知乎真实发布回答/想法并回链校验 <b>+3 💡</b>。
+    </div>
+    <div class="cat-tabs" id="cat-tabs"></div>
+    <div class="zhihu-layout">
+      <div id="zhihu-feed"></div>
+      <aside class="card unlock-panel" id="unlock-panel"></aside>
+    </div>
+  </section>
+
+  <!-- ============ 沙盘 ============ -->
+  <section class="view" id="view-tray">
+    <div class="section-title">🏖️ 我的沙盘 <span class="sub">从左侧沙具库挑选，点击沙盘放置</span></div>
+    <div class="hint">放置后可拖动调整；选中后按 Delete 或点「移除选中」撤下。完成后去生成报告。</div>
+    <div class="tray-layout">
+      <aside class="card library">
+        <h3>🧺 沙具库 <span class="pill" id="lib-count"></span></h3>
+        <div class="lib-grid" id="lib-grid"></div>
+      </aside>
+      <div class="sandbox-wrap">
+        <div class="sandbox-toolbar">
+          <button class="btn btn-ghost btn-sm" onclick="clearTray()">🧹 清空沙盘</button>
+          <button class="btn btn-ghost btn-sm" onclick="removeSelected()">✂️ 移除选中</button>
+          <button class="btn btn-primary btn-sm" onclick="goReport()">✨ 完成布置，生成报告</button>
+          <span class="tray-count" id="tray-count"></span>
+        </div>
+        <div class="sandbox" id="sandbox"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 报告 ============ -->
+  <section class="view" id="view-report">
+    <div id="report-area"></div>
+  </section>
+
+  <!-- ============ 社群 ============ -->
+  <section class="view" id="view-community">
+    <div class="community-head">
+      <div class="section-title" style="margin:0">💬 心语社群 <span class="sub">浏览他人的沙盘，留下你的回应</span></div>
+      <div class="feed-filters" id="feed-filters">
+        <button data-f="all" class="active">全部</button>
+        <button data-f="mine">我的发布</button>
+        <button data-f="collected">我的收藏</button>
+      </div>
+    </div>
+    <div class="note-inline" style="margin-bottom:16px">
+      社群内的点赞、收藏、评论都保存在本站，<b>不会同步到知乎</b>——
+      知乎开放平台只提供读取能力，站内互动需要你本人在知乎完成。
+    </div>
+    <div id="feed"></div>
+  </section>
+</main>
+
+<!-- 回链校验弹窗 -->
+<div class="modal-mask" id="verify-modal">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal('verify-modal')">✕</button>
+    <h2>🔗 回链校验 · 把你的真实创作带回来</h2>
+    <div class="verify-flow" id="verify-flow"></div>
+  </div>
+</div>
+
+<!-- 发布弹窗 -->
+<div class="modal-mask" id="publish-modal">
+  <div class="modal">
+    <button class="close-x" onclick="closeModal('publish-modal')">✕</button>
+    <h2>📤 发布到社群</h2>
+    <div class="form-row">
+      <label>沙盘预览</label>
+      <div class="post-mini" id="publish-mini" style="width:100%;height:130px"></div>
+    </div>
+    <div class="form-row">
+      <label>报告摘要</label>
+      <div class="report-preview-mini" id="publish-summary"></div>
+    </div>
+    <div class="form-row">
+      <label>给沙盘起个名字</label>
+      <input id="publish-title" placeholder="例如：雨后的小镇" maxlength="24">
+    </div>
+    <div class="form-row">
+      <label>可见范围</label>
+      <div class="seg" id="vis-seg">
+        <button data-v="public" class="active">🌐 公开可见</button>
+        <button data-v="friends">👥 仅好友可见</button>
+        <button data-v="private">🔒 仅自己可见</button>
+      </div>
+    </div>
+    <div class="form-row switch-row">
+      <div class="switch" id="anon-switch" onclick="this.classList.toggle('on')"></div>
+      <span>匿名发布 —— 以「一位旅人」的身份出现</span>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal('publish-modal')">取消</button>
+      <button class="btn btn-primary" onclick="confirmPublish()">发布</button>
+    </div>
+  </div>
+</div>
+
+<!-- 帖子详情弹窗 -->
+<div class="modal-mask" id="post-modal">
+  <div class="modal" style="max-width:720px">
+    <button class="close-x" onclick="closeModal('post-modal')">✕</button>
+    <div id="post-modal-body"></div>
+  </div>
+</div>
+
+<!-- 引导 -->
+<div class="onboard open" id="onboard">
+  <div class="box">
+    <h2>欢迎来到「沙游心语」🏝️</h2>
+    <div class="ob-step"><div class="n">1</div><p><b>随机沙具开场</b> —— 页面随机出现各类沙具，凭直觉点选。</p></div>
+    <div class="ob-step"><div class="n">2</div><p><b>读真实的知乎内容</b> —— 每件沙具背后是一个真实问题和真实回答，点进去读。</p></div>
+    <div class="ob-step"><div class="n">3</div><p><b>互动回到知乎</b> —— 赞同、评论、发想法都在知乎站内完成；回来贴上你的创作链接，系统会校验归属并给更高奖励。</p></div>
+    <div class="ob-step"><div class="n">4</div><p><b>自由布置沙盘</b> —— 把解锁的沙具摆进沙盘，位置与密度由你决定。</p></div>
+    <div class="ob-step"><div class="n">5</div><p><b>AI 沙盘报告</b> —— 温和、非诊断式的结构解读与开放性问题。</p></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:18px">
+      <button class="btn btn-primary" onclick="document.getElementById('onboard').classList.remove('open')">开始我的沙盘之旅 →</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<footer>沙游心语 · 沙盘 × 知乎 · 报告仅供自我探索，不构成任何心理诊断</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

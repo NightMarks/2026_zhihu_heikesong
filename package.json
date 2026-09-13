@@ -1,0 +1,16 @@
+{
+  "name": "shayu-zhihu",
+  "version": "1.0.0",
+  "description": "沙游心语 · 沙盘 × 知乎（含知乎 OAuth 登录与内容 API 接入）",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5"
+  }
+}
