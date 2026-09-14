@@ -37,7 +37,9 @@
 
 - 随机沙具、分类探索、灵感值和解锁
 - 知乎搜索、热榜和离线示例内容
-- 知乎 OAuth 后端框架；真实登录需要公网 HTTPS
+- Windows/macOS 自动发现并调用本地 `zhihu-cli`
+- 知乎 OAuth 登录，包含一次性 `state` 校验和安全 Session Cookie
+- 登录用户中心：资料、创作和关注列表，支持“加载更多”分页
 - 用户创作链接归属验证；需要可用数据源和用户身份
 - 沙具库与拖拽式沙盘
 - 本地规则报告与知乎 AI 报告接口
@@ -61,11 +63,15 @@ Node.js + Express（内容代理、OAuth、验证、AI 报告）
 ├─ public/
 │  ├─ index.html       页面结构
 │  ├─ style.css        页面和沙盘样式
-│  └─ app.js           前端游戏逻辑
+│  ├─ app.js           前端游戏主流程
+│  └─ js/
+│     ├─ api.js         浏览器端 API 请求封装
+│     └─ user-center.js 用户资料、创作与关注分页
 ├─ server/
 │  ├─ index.js         Express 服务、路由、OAuth 和验证
 │  ├─ zhihu.js         知乎开放平台 API 客户端
-│  └─ cli-source.js    本地 zhihu-cli 备用数据源
+│  ├─ cli-source.js    跨平台本地 zhihu-cli 数据源
+│  └─ oauth-state.js   OAuth state 生成与一次性校验
 ├─ docs/               后续开发计划
 ├─ .env.example        环境变量模板
 ├─ .gitignore          Git 忽略规则
@@ -143,7 +149,7 @@ npm start
 | 无知乎凭证 | 无 | 沙具、解锁、沙盘、本地报告、本地社区、示例内容 | 实时内容、真实登录、归属验证 |
 | 内容 API | `ZHIHU_ACCESS_SECRET` | 上述功能、搜索、热榜、AI 报告 | OAuth 登录和登录用户归属验证 |
 | 完整在线 | Access Secret、App ID、App Key、公网 HTTPS 回调 | 内容 API、OAuth、用户内容、归属验证 | 平台未开放的代点赞、代评论、代发布 |
-| 本地 CLI 备用源 | 已授权 CLI | 设计上用于内容读取和本人内容校验 | Windows 自动探测尚未完成 |
+| 本地 CLI 数据源 | 已授权 CLI | Windows/macOS 上的搜索、热榜、本人创作、关注与校验 | OAuth 仍需要 App ID、App Key 和公网 HTTPS 回调 |
 
 这里的“无知乎凭证”表示不连接知乎 API，不代表首次安装可以完全断网；`npm ci` 仍可能需要网络。
 
@@ -191,7 +197,14 @@ PORT=3000
 
 ### zhihu-cli 说明
 
-`server/cli-source.js` 当前仍包含队友 macOS 环境的适配逻辑，在 Windows 上不能保证自动发现 CLI。Windows 开发现阶段建议优先配置 `ZHIHU_ACCESS_SECRET`，跨平台 CLI 适配已列入开发计划。
+服务端通过 `process.platform` 选择运行方式：Windows 直接执行 `zhihu-cli.exe`；macOS/Linux 直接执行二进制，只有显式配置的 `.sh` 包装脚本才经 `bash`。查找顺序为：
+
+1. `ZHIHU_CLI_PATH` 或兼容变量 `ZHIHU_CLI`；
+2. Windows 的 `%LOCALAPPDATA%\ZhihuCLI\current\zhihu-cli.exe`；
+3. 当前系统 `PATH`；
+4. macOS/Linux 常见安装目录。
+
+代码中不包含任何开发者电脑的绝对路径。
 
 ## 服务端接口
 
@@ -201,6 +214,7 @@ PORT=3000
 | GET | `/api/search` | 搜索知乎内容 |
 | GET | `/api/hot` | 获取知乎热榜 |
 | GET | `/api/me/contents` | 获取当前用户创作内容 |
+| GET | `/api/me/followees` | 分页获取当前用户关注的人 |
 | POST | `/api/verify-contribution` | 验证内容归属并发放奖励 |
 | POST | `/api/report` | 生成沙盘报告 |
 | GET | `/auth/login` | 开始知乎 OAuth 登录 |
@@ -212,12 +226,16 @@ PORT=3000
 - 沙盘、灵感值、解锁记录和社区帖子保存在浏览器 `localStorage`。
 - 登录 Session 和已领取记录保存在 Node.js 服务器内存。
 - 清除浏览器数据会丢失本地作品，重启服务会清除登录状态。
-- Windows CLI 自动探测尚未完成。
-- OAuth 需要公网 HTTPS，安全流程和生产 Cookie 仍需加固。
+- OAuth 需要公网 HTTPS；本地 `127.0.0.1` 只能验证配置与页面状态，不能完成知乎回调。
 - 社区暂时不是跨设备、多人共享社区。
-- 前端逻辑集中在较大的 `public/app.js` 中。
-- 项目还没有自动测试和持续集成。
-- 开放平台接口和模型名应在发布前依据最新文档复核。
+- 前端游戏主流程仍在 `public/app.js`，API 与用户中心已经拆成独立模块。
+- 发布前仍应依据最新官方文档复核开放平台接口和模型名。
+
+运行自动测试：
+
+```powershell
+npm test
+```
 
 ## 常见问题
 

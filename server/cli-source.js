@@ -1,117 +1,155 @@
-/**
- * 本地 CLI 数据源适配器（可选）
- * ─────────────────────────────────────────────────────────
- * 场景：本机已通过 zhihu-cli 完成授权（凭证存在系统钥匙串），
- *      但没有把明文 Access Secret 写进 .env。
- *
- * 此时服务端可以改为调用本地 CLI 取数，效果与直连 HTTP API 一致。
- * 生产部署请用 .env 里的 ZHIHU_ACCESS_SECRET 直连，不要依赖本地 CLI。
- */
-
+/** Cross-platform adapter for the locally authenticated zhihu-cli. */
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import fs from 'node:fs';
+import path from 'node:path';
 
-const run = promisify(execFile);
+const exec = promisify(execFile);
 
-/**
- * CLI 调用串行队列
- * ─────────────────────────────────────────────────────────
- * 每次调用都会 spawn 一个 bash 子进程去跑 zhihu-cli。实测并发调用时
- * 子进程会互相冲突，导致同一批请求全部返回非 0 退出码。
- * 前端"一次抽 3 个查询词"必然产生并发，因此这里把所有 CLI 调用排成队列，
- * 一次只跑一个；对上层仍是普通的 async 接口，无需改调用方。
- */
 let cliQueue = Promise.resolve();
 function serialize(fn) {
   const next = cliQueue.then(fn, fn);
-  // 避免某次失败把整条链变成 rejected 状态
   cliQueue = next.then(() => {}, () => {});
   return next;
 }
 
-/** 带一次重试的 CLI 执行：偶发的子进程启动失败不应让整批内容降级 */
-async function runCli(args, opts) {
-  return serialize(async () => {
-    try {
-      return await run('bash', args, opts);
-    } catch (e) {
-      await new Promise(r => setTimeout(r, 350));
-      return await run('bash', args, opts);
-    }
-  });
+export function cliCandidates({ platform = process.platform, env = process.env } = {}) {
+  const names = [];
+  if (env.ZHIHU_CLI_PATH) names.push(env.ZHIHU_CLI_PATH);
+  if (env.ZHIHU_CLI) names.push(env.ZHIHU_CLI);
+
+  if (platform === 'win32' && env.LOCALAPPDATA) {
+    names.push(path.win32.join(env.LOCALAPPDATA, 'ZhihuCLI', 'current', 'zhihu-cli.exe'));
+  }
+
+  const executable = platform === 'win32' ? 'zhihu-cli.exe' : 'zhihu-cli';
+  const separator = platform === 'win32' ? ';' : ':';
+  for (const directory of String(env.PATH || '').split(separator)) {
+    if (!directory) continue;
+    names.push(platform === 'win32'
+      ? path.win32.join(directory, executable)
+      : path.posix.join(directory, executable));
+  }
+
+  if (platform === 'darwin') {
+    names.push('/opt/homebrew/bin/zhihu-cli', '/usr/local/bin/zhihu-cli');
+  } else if (platform === 'linux') {
+    names.push('/usr/local/bin/zhihu-cli', '/usr/bin/zhihu-cli');
+  }
+
+  return [...new Set(names.filter(Boolean))];
 }
 
-// 常见的内置 CLI 位置；也可用环境变量 ZHIHU_CLI 覆盖
-const CANDIDATES = [
-  process.env.ZHIHU_CLI,
-  '/private/var/folders/g6/s8f2dfs51ys7s16sj8tk2_cc0000gn/T/AppTranslocation/50CDBBA7-478F-49B4-B58C-0BD769573942/d/看山工作台.app/Contents/Resources/box-agent-runtime/bin/_internal/box_agent/skills/zhihu/scripts/run.sh',
-].filter(Boolean);
-
-export function findCli() {
-  for (const p of CANDIDATES) {
-    try { if (fs.existsSync(p)) return p; } catch {}
+export function findCli({
+  platform = process.platform,
+  env = process.env,
+  existsSync = fs.existsSync,
+} = {}) {
+  for (const candidate of cliCandidates({ platform, env })) {
+    try {
+      if (existsSync(candidate)) return candidate;
+    } catch {}
   }
   return null;
 }
 
+export function cliInvocation(cliPath, platform = process.platform) {
+  if (platform !== 'win32' && /\.sh$/i.test(cliPath)) {
+    return { file: 'bash', argsPrefix: [cliPath] };
+  }
+  return { file: cliPath, argsPrefix: [] };
+}
+
+async function runCli(args, opts = {}) {
+  const cliPath = findCli();
+  if (!cliPath) throw new Error('未找到本地 zhihu-cli，请先安装并完成 auth 配置');
+  const invocation = cliInvocation(cliPath);
+  return serialize(() => exec(
+    invocation.file,
+    [...invocation.argsPrefix, ...args],
+    { windowsHide: true, ...opts },
+  ));
+}
+
+export function normalizeCliPayload(payload, label = 'CLI 请求失败') {
+  if (!payload || typeof payload !== 'object') return payload;
+  if (payload.ok === false) {
+    throw new Error(payload.error?.message || payload.message || label);
+  }
+  if (payload.Code !== undefined && payload.Code !== 0 && payload.Code !== 20000) {
+    const error = new Error(payload.Message || label);
+    error.code = payload.Code;
+    throw error;
+  }
+  return payload.Data ?? payload.data ?? payload;
+}
+
+async function runJson(args, label, opts = {}) {
+  const { stdout } = await runCli(args, {
+    timeout: 40000,
+    maxBuffer: 8 * 1024 * 1024,
+    ...opts,
+  });
+  let payload;
+  try {
+    payload = JSON.parse(stdout);
+  } catch {
+    throw new Error(`${label}: zhihu-cli 返回了无法解析的数据`);
+  }
+  return normalizeCliPayload(payload, label);
+}
+
 export async function cliAvailable() {
-  const cli = findCli();
-  if (!cli) return false;
+  if (!findCli()) return false;
   try {
-    const { stdout } = await run('bash', [cli, 'status'], { timeout: 15000 });
-    const j = JSON.parse(stdout);
-    return !!(j.installed && j.auth?.configured);
-  } catch { return false; }
+    const { stdout } = await runCli(['auth', 'status'], { timeout: 15000 });
+    const payload = JSON.parse(stdout);
+    return payload.ok === true && Boolean(
+      payload.source || payload.masked || payload.environment_set || payload.keychain === 'available',
+    );
+  } catch {
+    return false;
+  }
 }
 
-/** 站内搜索 —— 返回与 HTTP API 完全一致的结构 */
 export async function cliSearch(query, count = 5) {
-  const cli = findCli();
-  if (!cli) throw new Error('未找到本地 zhihu-cli');
-  const { stdout } = await runCli(
-    [cli, 'search', 'zhihu', '--query', query, '--count', String(Math.min(count, 10))],
-    { timeout: 40000, maxBuffer: 8 * 1024 * 1024 }
+  return runJson(
+    ['search', 'zhihu', '--query', query, '--count', String(Math.min(count, 10))],
+    'CLI 搜索失败',
   );
-  const j = JSON.parse(stdout);
-  if (j.Code !== 0) throw new Error(j.Message || 'CLI 搜索失败');
-  return j.Data;
 }
 
-/** 热榜 */
 export async function cliHot(limit = 30) {
-  const cli = findCli();
-  if (!cli) throw new Error('未找到本地 zhihu-cli');
-  const { stdout } = await runCli([cli, 'hot', '--limit', String(Math.min(limit, 30))],
-    { timeout: 30000, maxBuffer: 8 * 1024 * 1024 });
-  const j = JSON.parse(stdout);
-  if (j.Code !== 0) throw new Error(j.Message || 'CLI 热榜失败');
-  return j.Data;
+  return runJson(['hot', '--limit', String(Math.min(limit, 30))], 'CLI 热榜失败');
 }
 
-/** 直答 */
 export async function cliAnswer(query) {
-  const cli = findCli();
-  if (!cli) throw new Error('未找到本地 zhihu-cli');
-  const { stdout } = await runCli([cli, 'answer', '--query', query],
-    { timeout: 90000, maxBuffer: 8 * 1024 * 1024 });
+  const { stdout } = await runCli(['answer', '--query', query], {
+    timeout: 90000,
+    maxBuffer: 8 * 1024 * 1024,
+  });
   try {
-    const j = JSON.parse(stdout);
-    return j?.choices?.[0]?.message?.content
-        ?? j?.Data?.Content ?? j?.Content ?? stdout.trim();
-  } catch { return stdout.trim(); }
+    const payload = JSON.parse(stdout);
+    normalizeCliPayload(payload, 'CLI 直答失败');
+    return payload?.choices?.[0]?.message?.content
+      ?? payload?.Data?.Content
+      ?? payload?.Content
+      ?? stdout.trim();
+  } catch (error) {
+    if (error instanceof SyntaxError) return stdout.trim();
+    throw error;
+  }
 }
 
-/** 本人创作 —— 用于回链校验 */
-export async function cliMyContents(limit = 50, offset = 0) {
-  const cli = findCli();
-  if (!cli) throw new Error('未找到本地 zhihu-cli');
-  const { stdout } = await runCli(
-    [cli, 'me', 'contents', '--type', 'all',
-     '--limit', String(Math.min(limit, 50)), '--offset', String(offset)],
-    { timeout: 40000, maxBuffer: 8 * 1024 * 1024 }
-  );
-  const j = JSON.parse(stdout);
-  if (j.Code !== 0) throw new Error(j.Message || 'CLI 读取创作失败');
-  return j.Data;
+export async function cliMyContents(limit = 20, offset = 0, type = 'all') {
+  return runJson([
+    'me', 'contents', '--type', type,
+    '--limit', String(Math.min(limit, 50)), '--offset', String(offset),
+  ], 'CLI 读取创作失败');
+}
+
+export async function cliMyFollowees(limit = 20, offset = 0) {
+  return runJson([
+    'me', 'followees', '--limit', String(Math.min(limit, 50)), '--offset', String(offset),
+  ], 'CLI 读取关注失败');
 }

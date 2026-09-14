@@ -88,11 +88,12 @@ export async function zhida(secret, messages, model = 'zhida-thinking-1p5') {
 /* ══════════════════ OAuth 用户登录 ══════════════════ */
 
 /** 构造知乎授权页地址，用户点击后跳转过去登录 */
-export function authorizeUrl(appId, redirectUri) {
+export function authorizeUrl(appId, redirectUri, state) {
   const p = new URLSearchParams({
     app_id: appId,
     redirect_uri: redirectUri,
     response_type: 'code',
+    state,
   });
   return `${OAUTH}/authorize?${p}`;
 }

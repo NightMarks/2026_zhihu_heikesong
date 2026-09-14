@@ -17,6 +17,7 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import * as zh from './zhihu.js';
 import * as cli from './cli-source.js';
+import { beginOAuth, consumeOAuth } from './oauth-state.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -85,7 +86,12 @@ function session(req, res) {
   if (!sid || !sessions.has(sid)) {
     sid = newSid();
     sessions.set(sid, { created: Date.now() });
-    res.cookie('sid', sid, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 864e5 });
+    res.cookie('sid', sid, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 864e5,
+    });
   }
   return sessions.get(sid);
 }
@@ -166,9 +172,8 @@ app.get('/auth/login', (req, res) => {
     ));
   }
   const s = session(req, res);
-  // 文档已说明回调不返 state，这里仍在本地存一份用于超时校验
-  s.oauthStart = Date.now();
-  res.redirect(zh.authorizeUrl(cfg.appId, cfg.redirectUri));
+  const state = beginOAuth(s);
+  res.redirect(zh.authorizeUrl(cfg.appId, cfg.redirectUri, state));
 });
 
 app.get('/auth/callback', async (req, res) => {
@@ -177,11 +182,14 @@ app.get('/auth/callback', async (req, res) => {
   const code = req.query.authorization_code || req.query.code;
   if (!code) return res.status(400).send(errPage('授权失败', '回调没有带回授权码。'));
 
-  // 回调没有 state 可校验（平台实测不回传），退而校验授权流程的时效性
-  if (!s.oauthStart || Date.now() - s.oauthStart > 10 * 60 * 1000) {
-    return res.status(400).send(errPage('授权已超时', '请回到首页重新点击「用知乎登录」。'));
+  try {
+    consumeOAuth(s, typeof req.query.state === 'string' ? req.query.state : '');
+  } catch (error) {
+    return res.status(400).send(errPage(
+      '授权校验失败',
+      `${escapeAttr(error.message)}。请回到首页重新点击「用知乎登录」。`,
+    ));
   }
-  delete s.oauthStart;
 
   try {
     const tok = await zh.exchangeToken(cfg.appId, cfg.appKey, cfg.redirectUri, code);
@@ -213,7 +221,7 @@ app.get('/auth/callback', async (req, res) => {
     };
     res.redirect('/?login=ok');
   } catch (e) {
-    res.status(502).send(errPage('换取 token 失败', e.message));
+    res.status(502).send(errPage('换取 token 失败', escapeAttr(e.message)));
   }
 });
 
@@ -228,6 +236,15 @@ app.post('/auth/logout', (req, res) => {
 const needSource = (req, res, next) =>
   SOURCE !== 'none' ? next()
     : res.status(503).json({ error: '未配置 ZHIHU_ACCESS_SECRET，且本地无已授权 CLI' });
+
+function pageParams(query) {
+  const parsedLimit = Number.parseInt(query.n, 10);
+  const parsedOffset = Number.parseInt(query.offset, 10);
+  return {
+    limit: Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 50) : 20,
+    offset: Number.isFinite(parsedOffset) ? Math.max(parsedOffset, 0) : 0,
+  };
+}
 
 app.get('/api/search', needSource, async (req, res) => {
   try {
@@ -250,14 +267,32 @@ app.get('/api/hot', needSource, async (req, res) => {
 /** 读取当前登录用户的创作 —— 用于"互动回链校验" */
 app.get('/api/me/contents', needSource, async (req, res) => {
   const s = session(req, res);
-  if (SOURCE === 'api' && !s.oauth?.token)
+  if (SOURCE === 'api' && !s.oauth?.token) {
     return res.status(401).json({ error: '未登录知乎' });
+  }
   try {
+    const { limit, offset } = pageParams(req.query);
+    const type = typeof req.query.type === 'string' ? req.query.type : 'all';
     const d = SOURCE === 'api'
       ? await zh.userContents(cfg.secret, s.oauth.token,
-          { type: req.query.type || 'all', limit: +req.query.n || 20 })
-      : await cli.cliMyContents(+req.query.n || 20, 0);
-    res.json({ items: d.Items || [], paging: d.Paging });
+          { type, limit, offset })
+      : await cli.cliMyContents(limit, offset, type);
+    res.json({ items: d.Items || [], paging: d.Paging || null });
+  } catch (e) { res.status(502).json({ error: e.message, code: e.code }); }
+});
+
+/** 读取当前登录用户关注的人，支持 offset 分页 */
+app.get('/api/me/followees', needSource, async (req, res) => {
+  const s = session(req, res);
+  if (SOURCE === 'api' && !s.oauth?.token) {
+    return res.status(401).json({ error: '未登录知乎' });
+  }
+  try {
+    const { limit, offset } = pageParams(req.query);
+    const d = SOURCE === 'api'
+      ? await zh.userFollowees(cfg.secret, s.oauth.token, limit, offset)
+      : await cli.cliMyFollowees(limit, offset);
+    res.json({ items: d.Items || [], paging: d.Paging || null });
   } catch (e) { res.status(502).json({ error: e.message, code: e.code }); }
 });
 

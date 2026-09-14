@@ -48,6 +48,9 @@ input,textarea{font-family:inherit}
 .user-chip{display:flex;align-items:center;gap:8px;padding:4px 6px 4px 4px;border-radius:99px;background:#f4efe4;border:1px solid var(--line)}
 .user-chip .av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#8fb8a0,#5b8a72);display:grid;place-items:center;color:#fff;font-size:12px}
 /* 真实知乎头像：同尺寸圆形裁切，避免非方图变形 */
+.user-chip .user-entry{display:flex;align-items:center;gap:8px;min-width:0;border-radius:99px;padding-right:2px}
+.user-chip .user-entry:hover .nm{color:var(--zhihu)}
+.user-chip .user-entry:focus-visible{outline:2px solid var(--zhihu);outline-offset:2px}
 img.av{object-fit:cover;display:block;flex:none;background:#e8e1d5}
 .user-chip .nm{font-size:13px;font-weight:600;color:var(--ink);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .user-chip .out{font-size:12px;color:var(--ink-3);padding:2px 8px;border-radius:99px}
@@ -296,3 +299,60 @@ main{max-width:1120px;margin:0 auto;padding:26px 24px 80px}
 .ob-step p{font-size:14px;color:#4a443d;line-height:1.75}
 .ob-step b{color:var(--ink)}
 footer{text-align:center;color:var(--ink-3);font-size:12px;padding:30px 0 40px}
+
+/* ===== 知乎用户中心 ===== */
+.back-link{color:var(--ink-2);font-size:13px;margin:0 0 14px;padding:5px 0}
+.back-link:hover{color:var(--accent-2)}
+.profile-hero{min-height:190px;padding:30px 34px;display:flex;align-items:center;gap:22px;overflow:hidden;position:relative}
+.profile-hero::after{content:"知";position:absolute;right:22px;bottom:-68px;font-family:Georgia,serif;font-size:210px;line-height:1;color:var(--sand);opacity:.45;pointer-events:none}
+.profile-avatar{width:90px;height:90px;border-radius:28px;display:grid;place-items:center;overflow:hidden;flex:none;background:linear-gradient(145deg,var(--accent),#77a993);color:#fff;font-size:32px;font-weight:700;box-shadow:0 12px 28px rgba(63,107,86,.2)}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-copy{flex:1;min-width:0;position:relative;z-index:1}
+.profile-eyebrow{font:700 10px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.18em;color:var(--accent);margin-bottom:5px}
+.profile-copy h1{font-size:28px;line-height:1.3;margin-bottom:6px}
+.profile-copy p{font-size:14px;color:var(--ink-2);max-width:560px}
+.profile-hero>.btn{position:relative;z-index:1;flex:none}
+.user-data{margin-top:18px;padding:0 24px 24px}
+.user-tabs{height:58px;display:flex;align-items:flex-end;gap:28px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.user-tabs button{height:58px;position:relative;font-size:14px;color:var(--ink-2);font-weight:600}
+.user-tabs button::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:transparent}
+.user-tabs button.active{color:var(--ink)}
+.user-tabs button.active::after{background:var(--accent)}
+.user-list{display:grid;gap:10px}
+.user-content-card{padding:17px 18px;border:1px solid var(--line);border-radius:12px;background:#fff;transition:.18s}
+.user-content-card:hover{border-color:#cfded5;transform:translateY(-1px)}
+.content-kicker{text-transform:uppercase;font-size:10px;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:3px}
+.user-content-card>a{font-size:15px;font-weight:700;color:var(--ink);text-decoration:none}
+.user-content-card>a:hover{color:var(--zhihu)}
+.user-content-card p{font-size:13px;color:var(--ink-2);line-height:1.7;margin-top:5px}
+.content-stats{display:flex;gap:16px;margin-top:9px;color:var(--ink-3);font-size:12px}
+.followee-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.followee-card{display:flex;align-items:flex-start;gap:12px;padding:15px;border:1px solid var(--line);border-radius:12px;min-width:0}
+.followee-avatar{width:46px;height:46px;border-radius:14px;overflow:hidden;display:grid;place-items:center;flex:none;background:#eaf2ed;color:var(--accent-2);font-weight:700}
+.followee-avatar img{width:100%;height:100%;object-fit:cover}
+.followee-card>div:last-child{min-width:0}
+.followee-card a{font-size:14px;font-weight:700;color:var(--ink);text-decoration:none}
+.followee-card a:hover{color:var(--zhihu)}
+.followee-card p{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.followee-card small{color:var(--ink-3);font-size:11.5px}
+.user-more{display:flex;margin:18px auto 0;min-width:140px}
+.user-empty{text-align:center;padding:44px 16px;color:var(--ink-3);font-size:13px}
+
+@media(max-width:760px){
+  .topbar{height:auto;min-height:62px;padding:9px 16px;gap:8px 12px;flex-wrap:wrap}
+  .logo{font-size:16px;flex:none}
+  .logo small{display:none}
+  .top-right{margin-left:auto;gap:7px}
+  .insp-chip{padding:5px 9px}
+  .nav{order:3;width:100%;margin-left:0;overflow-x:auto;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{flex:none;white-space:nowrap;padding:7px 13px}
+  main{padding:20px 16px 64px}
+  .profile-hero{padding:24px;align-items:flex-start;flex-wrap:wrap}
+  .profile-avatar{width:72px;height:72px;border-radius:22px}
+  .profile-copy{flex-basis:calc(100% - 100px)}
+  .profile-copy h1{font-size:23px}
+  .profile-hero>.btn{margin-left:94px}
+  .followee-grid{grid-template-columns:1fr}
+  .user-data{padding:0 16px 20px}
+}

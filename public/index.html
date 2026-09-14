@@ -93,6 +93,31 @@
     </div>
     <div id="feed"></div>
   </section>
+
+  <!-- ============ 知乎用户中心 ============ -->
+  <section class="view" id="view-user">
+    <button class="back-link" onclick="switchView('explore')">← 返回沙盘</button>
+    <div class="profile-hero card" id="user-profile"></div>
+
+    <div class="user-data card">
+      <div class="user-tabs" role="tablist" aria-label="知乎用户信息">
+        <button class="active" role="tab" aria-selected="true" data-user-tab="contents"
+                onclick="ShaYuUserCenter.setTab('contents')">我的创作</button>
+        <button role="tab" aria-selected="false" data-user-tab="followees"
+                onclick="ShaYuUserCenter.setTab('followees')">我关注的人</button>
+      </div>
+      <section data-user-panel="contents">
+        <div class="user-list" id="user-contents-list"></div>
+        <button class="btn btn-ghost user-more" id="user-contents-more"
+                onclick="ShaYuUserCenter.loadContents()">加载更多</button>
+      </section>
+      <section data-user-panel="followees" hidden>
+        <div class="followee-grid" id="user-followees-list"></div>
+        <button class="btn btn-ghost user-more" id="user-followees-more"
+                onclick="ShaYuUserCenter.loadFollowees()">加载更多</button>
+      </section>
+    </div>
+  </section>
 </main>
 
 <!-- 回链校验弹窗 -->
@@ -166,6 +191,8 @@
 <div id="toast"></div>
 <footer>沙游心语 · 沙盘 × 知乎 · 报告仅供自我探索，不构成任何心理诊断</footer>
 
+<script src="js/api.js"></script>
+<script src="js/user-center.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

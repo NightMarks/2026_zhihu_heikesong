@@ -265,8 +265,7 @@ let ME='旅人No.7';
 /** 启动时探测服务端能力：哪些是真的，哪些没配 */
 async function probeCapabilities(){
   try{
-    const r=await fetch('/api/capabilities');
-    CAP=await r.json();
+    CAP=await ShaYuApi.capabilities();
     if(CAP.user?.nick) ME=CAP.user.nick;
   }catch(e){ /* 离线模式 */ }
   renderAuth(); renderCapBar();
@@ -284,8 +283,10 @@ function renderAuth(){
              onerror="this.outerHTML='<div class=\\'av\\'>${escapeHtml(nick[0]||'知')}</div>'">`
       : `<div class="av">${escapeHtml(nick[0]||'知')}</div>`;
     el.innerHTML=`<div class="user-chip" title="${escapeHtml(u.headline||nick)}">
-      ${av}
-      <span class="nm" title="${escapeHtml(nick)}">${escapeHtml(nick)}</span>
+      <button class="user-entry" onclick="openUserCenter()" aria-label="打开 ${escapeHtml(nick)} 的用户中心">
+        ${av}
+        <span class="nm" title="${escapeHtml(nick)}">${escapeHtml(nick)}</span>
+      </button>
       <button class="out" onclick="logout()">退出</button></div>`;
   }else if(CAP.oauthReady){
     el.innerHTML=`<a class="login-btn" href="/auth/login">🔐 用知乎登录</a>`;
@@ -319,10 +320,15 @@ function renderCapBar(){
 
 async function logout(){
   // 网络异常不应阻断本地登出，因此不让 fetch 的失败冒泡
-  try{ await fetch('/auth/logout',{method:'POST'}); }
+  try{ await ShaYuApi.logout(); }
   catch(e){ /* 离线或服务端不可达：仍然清掉本地登录态 */ }
   CAP.loggedIn=false;CAP.user=null;ME='旅人No.7';
+  if($('#view-user')?.classList.contains('active')) switchView('explore');
   renderAuth();renderCapBar();toast('已退出知乎登录');
+}
+
+function openUserCenter(){
+  ShaYuUserCenter.open();
 }
 
 /** 从数组里随机抽 n 个（不改原数组） */
@@ -1037,6 +1043,12 @@ function confirmPublish(){
 
 /* ══════════════════ 初始化 ══════════════════ */
 (async function init(){
+  ShaYuUserCenter.init({
+    escapeHtml,
+    toast,
+    switchView,
+    getCapabilities:()=>CAP,
+  });
   refreshTop();
   shuffleRandom();
   renderCatTabs();
