@@ -62,7 +62,16 @@
       </aside>
       <div class="sandbox-wrap">
         <div class="sandbox-toolbar">
-          <button class="btn btn-ghost btn-sm" onclick="clearTray()">🧹 清空沙盘</button>
+          <button class="btn btn-ghost btn-sm" id="undo-btn" onclick="undoTray()">↶ 撤销</button>
+          <button class="btn btn-ghost btn-sm" id="redo-btn" onclick="redoTray()">↷ 重做</button>
+          <button class="btn btn-ghost btn-sm" onclick="rotateSelected(-15)">↺ 左转</button>
+          <button class="btn btn-ghost btn-sm" onclick="rotateSelected(15)">↻ 右转</button>
+          <button class="btn btn-ghost btn-sm" onclick="scaleSelected(-0.1)">− 缩小</button>
+          <button class="btn btn-ghost btn-sm" onclick="scaleSelected(0.1)">＋ 放大</button>
+          <button class="btn btn-ghost btn-sm" onclick="layerSelected(-1)">下移一层</button>
+          <button class="btn btn-ghost btn-sm" onclick="layerSelected(1)">上移一层</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportTrayImage()">🖼️ 导出图片</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearTray()">🧹 清空</button>
           <button class="btn btn-ghost btn-sm" onclick="removeSelected()">✂️ 移除选中</button>
           <button class="btn btn-primary btn-sm" onclick="goReport()">✨ 完成布置，生成报告</button>
           <span class="tray-count" id="tray-count"></span>
@@ -150,7 +159,7 @@
       <label>可见范围</label>
       <div class="seg" id="vis-seg">
         <button data-v="public" class="active">🌐 公开可见</button>
-        <button data-v="friends">👥 仅好友可见</button>
+        <button data-v="friends" title="好友关系接入前，仅发布者自己可见">👥 仅好友可见</button>
         <button data-v="private">🔒 仅自己可见</button>
       </div>
     </div>
@@ -182,8 +191,9 @@
     <div class="ob-step"><div class="n">3</div><p><b>互动回到知乎</b> —— 赞同、评论、发想法都在知乎站内完成；回来贴上你的创作链接，系统会校验归属并给更高奖励。</p></div>
     <div class="ob-step"><div class="n">4</div><p><b>自由布置沙盘</b> —— 把解锁的沙具摆进沙盘，位置与密度由你决定。</p></div>
     <div class="ob-step"><div class="n">5</div><p><b>AI 沙盘报告</b> —— 温和、非诊断式的结构解读与开放性问题。</p></div>
-    <div style="display:flex;justify-content:flex-end;margin-top:18px">
-      <button class="btn btn-primary" onclick="document.getElementById('onboard').classList.remove('open')">开始我的沙盘之旅 →</button>
+    <div class="journey-auth">
+      <p id="journey-auth-note">正在检查知乎登录状态…</p>
+      <button class="btn btn-primary" id="start-journey" onclick="startJourney()" disabled>正在检查登录状态…</button>
     </div>
   </div>
 </div>
@@ -191,8 +201,10 @@
 <div id="toast"></div>
 <footer>沙游心语 · 沙盘 × 知乎 · 报告仅供自我探索，不构成任何心理诊断</footer>
 
+<script src="js/state.js"></script>
 <script src="js/api.js"></script>
 <script src="js/user-center.js"></script>
+<script src="js/community.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

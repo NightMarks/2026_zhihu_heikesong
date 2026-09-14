@@ -24,9 +24,12 @@ import {
   normalizeAspects,
   requestSandtrayAnalysis,
 } from './ai-analysis.js';
+import { CommunityService, createCommunityRouter } from './community.js';
+import { createJsonStore } from './store.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
+const APP_VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
 
 // ── 配置 ──
 const cfg = {
@@ -40,6 +43,7 @@ const cfg = {
   aiApiKey:    process.env.AI_API_KEY || process.env.YOUR_API_KEY || '',
   aiBaseUrl:   process.env.AI_BASE_URL || 'https://api.openai-next.com/v1',
   aiModel:     process.env.AI_MODEL || 'gpt-5.6-sol',
+  communityDataPath: process.env.COMMUNITY_DATA_PATH || path.join(ROOT, 'data', 'local-store.json'),
 };
 
 // 读 .env（不引额外依赖，手写足够）
@@ -68,6 +72,7 @@ if (fs.existsSync(envPath)) {
   if (!cfg.aiApiKey) fill('YOUR_API_KEY', 'aiApiKey');
   fill('AI_BASE_URL',         'aiBaseUrl');
   fill('AI_MODEL',            'aiModel');
+  fill('COMMUNITY_DATA_PATH', 'communityDataPath');
 }
 
 if (!cfg.redirectUri) {
@@ -101,6 +106,7 @@ const analysisClient = createAnalysisClient({
   apiKey: cfg.aiApiKey,
   baseURL: cfg.aiBaseUrl,
 });
+const communityService = new CommunityService(createJsonStore(cfg.communityDataPath));
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
@@ -133,6 +139,22 @@ function session(req, res) {
   }
   return sessions.get(sid);
 }
+
+app.use('/api/community', (req, res, next) => {
+  if (req.method === 'GET') return next();
+  const s = session(req, res);
+  const now = Date.now();
+  s.communityMutations = (s.communityMutations || []).filter(time => now - time < 5 * 60_000);
+  if (s.communityMutations.length >= 30) {
+    return res.status(429).json({ error: '社区互动得有点频繁，请稍后再试' });
+  }
+  s.communityMutations.push(now);
+  next();
+});
+app.use('/api/community', createCommunityRouter({
+  service: communityService,
+  getUser: (req, res) => session(req, res).user || null,
+}));
 
 // ── 数据源探测：优先直连 HTTP API，其次回退本地已授权 CLI ──
 let SOURCE = 'none';          // 'api' | 'cli' | 'none'
@@ -179,10 +201,16 @@ app.get('/api/capabilities', (req, res) => {
     redirectPublic: redirectReady,
     redirectUri:    cfg.redirectUri,   // 公开信息，便于用户核对开放平台登记值
     loggedIn:   !!s.user,
-    user:       s.user || null,
+    user:       s.user ? {
+      nick: s.user.nick,
+      avatar: s.user.avatar,
+      url: s.user.url,
+      headline: s.user.headline,
+    } : null,
     aiReport:   !!analysisClient,
     aiModel:    analysisClient ? cfg.aiModel : null,
     analysisAspects: ANALYSIS_ASPECTS,
+    communityOnline: true,
     // 平台能力边界 —— 前端据此渲染 UI，不做虚假承诺
     canRead:  ['zhihu_search', 'global_search', 'hot_list', 'zhida',
                'user_contents', 'user_collections', 'user_followees'],
@@ -213,6 +241,10 @@ app.get('/auth/login', (req, res) => {
     ));
   }
   const s = session(req, res);
+  const requestedReturn = typeof req.query.returnTo === 'string' ? req.query.returnTo : '/';
+  s.oauthReturnTo = requestedReturn.startsWith('/') && !requestedReturn.startsWith('//')
+    ? requestedReturn.slice(0, 1000)
+    : '/';
   const state = beginOAuth(s);
   res.redirect(zh.authorizeUrl(cfg.appId, cfg.redirectUri, state));
 });
@@ -254,13 +286,18 @@ app.get('/auth/callback', async (req, res) => {
     }
 
     s.user = {
+      id:       profile?.urlToken
+        || crypto.createHash('sha256').update(profile?.url || profile?.nick || tok.access_token).digest('hex').slice(0, 24),
       nick:     profile?.nick || '知乎用户',
       avatar:   profile?.avatar || null,     // 取不到就是 null，前端显示文字头像，不造假
       url:      profile?.url || null,
       headline: profile?.headline || null,
       loginAt:  Date.now(),
     };
-    res.redirect('/?login=ok');
+    const returnTo = s.oauthReturnTo || '/';
+    delete s.oauthReturnTo;
+    const separator = returnTo.includes('?') ? '&' : '?';
+    res.redirect(`${returnTo}${separator}login=ok`);
   } catch (e) {
     res.status(502).send(errPage('换取 token 失败', escapeAttr(e.message)));
   }
@@ -404,6 +441,10 @@ app.post('/api/verify-contribution', needSource, async (req, res) => {
 
 /* ══════════════════ 大模型生成沙盘报告 ══════════════════ */
 app.post('/api/report', async (req, res) => {
+  const s = session(req, res);
+  if (!s.user?.id) {
+    return res.status(401).json({ error: '请先登录知乎，再生成沙盘报告' });
+  }
   const { features, aspects } = req.body || {};
   if (typeof features !== 'string' || !features.trim()) {
     return res.status(400).json({ error: '缺少沙盘结构特征' });
@@ -417,7 +458,6 @@ app.post('/api/report', async (req, res) => {
   }
 
   // 比赛 Demo 的轻量限流：控制公开接口的误触与 Key 消耗。
-  const s = session(req, res);
   const now = Date.now();
   s.aiReportRequests = (s.aiReportRequests || []).filter(time => now - time < 5 * 60_000);
   if (s.aiReportRequests.length >= 4) {
@@ -438,6 +478,13 @@ app.post('/api/report', async (req, res) => {
     res.json({ ok: false, error: '大模型暂时未返回结果，请稍后重试', fallback: true });
   }
 });
+
+app.get('/api/health', (req, res) => res.json({
+  ok: true,
+  version: APP_VERSION,
+  sourceType: SOURCE,
+  community: communityService.store.readOnly ? 'read-only' : 'ready',
+}));
 
 /* ══════════════════ 静态资源 ══════════════════ */
 app.use(express.static(path.join(ROOT, 'public')));

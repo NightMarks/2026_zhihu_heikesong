@@ -199,54 +199,10 @@ const ATMOS = {
 };
 
 /* ========== 状态 ========== */
-const LS='shayu_v2';
 let CAP={contentApi:false,oauth:false,loggedIn:false,user:null,aiReport:false,aiModel:null};
 let POSTS={};              // catId -> 知乎内容数组（运行时从 API 拉取）
-let state=load();
-
-function load(){
-  try{
-    const s=JSON.parse(localStorage.getItem(LS));
-    if(s&&s.v===2){
-      // 分类扩充后，老存档里缺少新分类的灵感值键。
-      // 不补会读出 undefined，导致界面显示 💡undefined、加分变成 NaN。
-      s.insp=s.insp||{};
-      for(const c of CATEGORIES) if(typeof s.insp[c.id]!=='number') s.insp[c.id]=0;
-      return s;
-    }
-  }catch(e){}
-  return {
-    v:2,
-    insp:Object.fromEntries(CATEGORIES.map(c=>[c.id,0])),
-    unlocked:{}, tray:[],
-    read:{},            // url -> true（读过并写了感受）
-    verified:{},        // 知乎内容 id -> {title,url}
-    posts:seedPosts(),
-    report:null
-  };
-}
-function save(){localStorage.setItem(LS,JSON.stringify(state))}
-
-function seedPosts(){
-  const now=Date.now(),H=3600e3;
-  return [
-    {id:'seed1',title:'雨停之后的小镇',author:'山海不远',anon:false,vis:'public',time:now-26*H,
-      likes:42,collects:9,liked:false,collected:false,
-      summary:'摆放了小木屋、桥和一家三口。报告提示"过渡期的安定感"：桥连接着旧生活与新生活，家人都在桥的同侧。',
-      tray:[{toyId:'cabin',x:28,y:52},{toyId:'bridge',x:55,y:60},{toyId:'child',x:72,y:40},{toyId:'elder',x:80,y:48},{toyId:'boat',x:15,y:78}],
-      comments:[{who:'青柠气泡',text:'桥的意象好动人，祝你顺利抵达对岸。',time:now-20*H},{who:'Meow',text:'收藏了，我也想摆一个这样的沙盘。',time:now-12*H}]},
-    {id:'seed2',title:'守着灯塔的怪兽',author:'一位旅人',anon:true,vis:'public',time:now-8*H,
-      likes:17,collects:3,liked:false,collected:false,
-      summary:'怪兽被放在沙盘最边缘，中间是城堡和盾。报告说："防御已经足够坚固，怪兽或许只是想被看见。"',
-      tray:[{toyId:'castle',x:50,y:45},{toyId:'shield',x:38,y:58},{toyId:'beast',x:88,y:82},{toyId:'tower',x:20,y:30}],
-      comments:[{who:'盐系青年',text:'"怪兽只是想被看见"，这句话戳到我了。',time:now-5*H}]},
-    {id:'seed3',title:'出发去有风的地方',author:'柚子茶',anon:false,vis:'public',time:now-2*H,
-      likes:8,collects:1,liked:false,collected:false,
-      summary:'飞机、钥匙、小孩：一份关于"新的开始"的沙盘。',
-      tray:[{toyId:'plane',x:70,y:25},{toyId:'key',x:45,y:55},{toyId:'child',x:30,y:70}],
-      comments:[]}
-  ];
-}
+let state=ShaYuState.load(CATEGORIES);
+function save(){ShaYuState.save(state)}
 
 /* ========== 工具 ========== */
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
@@ -268,7 +224,7 @@ async function probeCapabilities(){
     CAP=await ShaYuApi.capabilities();
     if(CAP.user?.nick) ME=CAP.user.nick;
   }catch(e){ /* 离线模式 */ }
-  renderAuth(); renderCapBar();
+  renderAuth(); renderCapBar(); updateJourneyGate();
 }
 
 function renderAuth(){
@@ -288,13 +244,39 @@ function renderAuth(){
         <span class="nm" title="${escapeHtml(nick)}">${escapeHtml(nick)}</span>
       </button>
       <button class="out" onclick="logout()">退出</button></div>`;
-  }else if(CAP.oauthReady){
-    el.innerHTML=`<a class="login-btn" href="/auth/login">🔐 用知乎登录</a>`;
-  }else if(CAP.oauth){
-    // 凭证齐备但回调是本地地址：知乎回调不到，按钮置灰并说明真实原因
-    el.innerHTML=`<button class="login-btn off" onclick="toast('本地地址无法完成知乎登录，需先部署并配置公网 HTTPS 回调')">🔐 登录待部署</button>`;
   }else{
-    el.innerHTML=`<button class="login-btn off" onclick="toast('服务端未配置 app_id / app_key，登录不可用')">🔐 知乎登录未配置</button>`;
+    // 登录入口只出现在旅程门禁中；右上角仅用于展示已登录身份。
+    el.innerHTML='';
+  }
+}
+
+function updateJourneyGate(){
+  const button=$('#start-journey');
+  const note=$('#journey-auth-note');
+  if(!button||!note)return;
+  button.disabled=false;
+  if(CAP.loggedIn){
+    button.textContent='进入我的沙盘世界 →';
+    note.textContent=`已登录为 ${CAP.user?.nick||'知乎用户'}，可以开始探索。`;
+  }else if(CAP.oauthReady){
+    button.textContent='登录知乎并开始旅程 →';
+    note.textContent='需要先完成知乎 OAuth 登录，登录后会自动回到这里。';
+  }else{
+    button.textContent='当前环境暂时无法登录';
+    button.disabled=true;
+    note.textContent=CAP.oauth?'当前回调地址不是公网 HTTPS，请检查部署配置。':'服务端尚未配置知乎 OAuth。';
+  }
+}
+
+function startJourney(){
+  if(CAP.loggedIn){
+    $('#onboard').classList.remove('open');
+    enterGame();
+    return;
+  }
+  if(CAP.oauthReady){
+    const returnTo=`${location.pathname}${location.search}`;
+    location.assign(`/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
   }
 }
 
@@ -325,12 +307,20 @@ async function logout(){
   catch(e){ /* 离线或服务端不可达：仍然清掉本地登录态 */ }
   CAP.loggedIn=false;CAP.user=null;ME='旅人No.7';
   if($('#view-user')?.classList.contains('active')) switchView('explore');
-  renderAuth();renderCapBar();toast('已退出知乎登录');
+  renderAuth();renderCapBar();updateJourneyGate();
+  $('#onboard').classList.add('open');
+  toast('已退出知乎登录');
 }
 
 function openUserCenter(){
   ShaYuUserCenter.open();
 }
+
+window.addEventListener('shayu:unauthorized',()=>{
+  CAP.loggedIn=false;CAP.user=null;gameEntered=false;
+  renderAuth();renderCapBar();updateJourneyGate();
+  $('#onboard').classList.add('open');
+});
 
 /** 从数组里随机抽 n 个（不改原数组） */
 function pickRandom(arr,n){
@@ -399,10 +389,11 @@ $('#nav').addEventListener('click',e=>{
   switchView(b.dataset.view);
 });
 function switchView(name){
+  if(!CAP.loggedIn){$('#onboard').classList.add('open');return}
   $$('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===name));
   $$('.view').forEach(v=>v.classList.remove('active'));
   $('#view-'+name).classList.add('active');
-  if(name==='community')renderFeed();
+  if(name==='community')ShaYuCommunity.open();
   if(name==='tray'){renderLibrary();renderSandbox()}
   if(name==='report') state.report?renderReport():(state.tray.length?renderReportSetup():renderReport());
 }
@@ -665,6 +656,17 @@ function refreshTop(){$('#insp-total').textContent=inspTotal()}
 
 /* ══════════════════ 沙盘编辑器 ══════════════════ */
 let selectedLib=null,selectedPlaced=-1;
+let undoStack=[],redoStack=[];
+const traySnapshot=()=>JSON.parse(JSON.stringify(state.tray));
+function commitTray(previous){
+  if(JSON.stringify(previous)===JSON.stringify(state.tray))return;
+  undoStack.push(previous);if(undoStack.length>50)undoStack.shift();
+  redoStack=[];state.report=null;save();renderSandbox();
+}
+function updateHistoryButtons(){
+  if($('#undo-btn'))$('#undo-btn').disabled=!undoStack.length;
+  if($('#redo-btn'))$('#redo-btn').disabled=!redoStack.length;
+}
 function ownedToys(){return CATEGORIES.flatMap(c=>c.toys.filter(t=>state.unlocked[t.id]).map(t=>({...t,cat:c})))}
 function renderLibrary(){
   const toys=ownedToys();
@@ -690,13 +692,14 @@ function renderSandbox(){
     const t=toyOf(it.toyId);if(!t)return;
     const d=document.createElement('div');
     d.className='placed'+(i===selectedPlaced?' selected':'');
-    d.style.left=it.x+'%';d.style.top=it.y+'%';
-    d.style.transform='translate(-50%,-50%)';
+    d.style.left=it.x+'%';d.style.top=it.y+'%';d.style.zIndex=String(i+1);
+    d.style.transform=`translate(-50%,-50%) rotate(${Number(it.rotation)||0}deg) scale(${Number(it.scale)||1})`;
     d.textContent=t.emoji;d.title=t.name;
     d.addEventListener('pointerdown',e=>startDrag(e,i));
     sb.appendChild(d);
   });
   $('#tray-count').textContent='已摆放 '+state.tray.length+' 件沙具';
+  updateHistoryButtons();
 }
 $('#sandbox').addEventListener('click',e=>{
   if(e.target.closest('.placed'))return;
@@ -704,12 +707,14 @@ $('#sandbox').addEventListener('click',e=>{
   const r=$('#sandbox').getBoundingClientRect();
   const x=+(((e.clientX-r.left)/r.width)*100).toFixed(1);
   const y=+(((e.clientY-r.top)/r.height)*100).toFixed(1);
-  state.tray.push({toyId:selectedLib,x:Math.min(96,Math.max(4,x)),y:Math.min(94,Math.max(6,y))});
+  const previous=traySnapshot();
+  state.tray.push({toyId:selectedLib,x:Math.min(96,Math.max(4,x)),y:Math.min(94,Math.max(6,y)),rotation:0,scale:1});
   selectedPlaced=state.tray.length-1;
-  save();renderSandbox();
+  commitTray(previous);
 });
 function startDrag(e,i){
   e.preventDefault();e.stopPropagation();
+  const previous=traySnapshot();
   selectedPlaced=i;renderSandbox();
   const el=$('#sandbox').children[i],rect=$('#sandbox').getBoundingClientRect();
   const move=ev=>{
@@ -719,19 +724,72 @@ function startDrag(e,i){
     state.tray[i].y=Math.min(94,Math.max(6,y));
     el.style.left=state.tray[i].x+'%';el.style.top=state.tray[i].y+'%';
   };
-  const up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);save();renderSandbox()};
+  const up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);commitTray(previous)};
   window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);
 }
 document.addEventListener('keydown',e=>{
   if(e.key==='Delete'&&selectedPlaced>-1&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName))removeSelected();
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey){e.preventDefault();undoTray()}
+  if(((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y')||((e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key.toLowerCase()==='z')){e.preventDefault();redoTray()}
 });
 function removeSelected(){
   if(selectedPlaced<0){toast('先点击选中沙盘上的一件沙具');return}
-  state.tray.splice(selectedPlaced,1);selectedPlaced=-1;save();renderSandbox();
+  const previous=traySnapshot();state.tray.splice(selectedPlaced,1);selectedPlaced=-1;commitTray(previous);
 }
 function clearTray(){
   if(!state.tray.length)return;
-  state.tray=[];selectedPlaced=-1;state.report=null;save();renderSandbox();toast('沙盘已清空');
+  const previous=traySnapshot();state.tray=[];selectedPlaced=-1;commitTray(previous);toast('沙盘已清空');
+}
+function undoTray(){
+  if(!undoStack.length)return;
+  redoStack.push(traySnapshot());state.tray=undoStack.pop();selectedPlaced=-1;state.report=null;save();renderSandbox();
+}
+function redoTray(){
+  if(!redoStack.length)return;
+  undoStack.push(traySnapshot());state.tray=redoStack.pop();selectedPlaced=-1;state.report=null;save();renderSandbox();
+}
+function rotateSelected(delta){
+  if(selectedPlaced<0)return toast('先选中一件沙具');
+  const previous=traySnapshot();
+  state.tray[selectedPlaced].rotation=((Number(state.tray[selectedPlaced].rotation)||0)+delta)%360;
+  commitTray(previous);
+}
+function scaleSelected(delta){
+  if(selectedPlaced<0)return toast('先选中一件沙具');
+  const previous=traySnapshot();
+  const current=Number(state.tray[selectedPlaced].scale)||1;
+  state.tray[selectedPlaced].scale=Math.min(2,Math.max(.5,+(current+delta).toFixed(1)));
+  commitTray(previous);
+}
+function layerSelected(direction){
+  if(selectedPlaced<0)return toast('先选中一件沙具');
+  const target=Math.min(state.tray.length-1,Math.max(0,selectedPlaced+direction));
+  if(target===selectedPlaced)return;
+  const previous=traySnapshot();
+  const [item]=state.tray.splice(selectedPlaced,1);state.tray.splice(target,0,item);selectedPlaced=target;
+  commitTray(previous);
+}
+function exportTrayImage(){
+  if(!state.tray.length)return toast('沙盘还是空的');
+  const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=760;
+  const ctx=canvas.getContext('2d');
+  const gradient=ctx.createLinearGradient(0,0,1200,760);gradient.addColorStop(0,'#f7e4b4');gradient.addColorStop(1,'#d8b97a');
+  ctx.fillStyle=gradient;ctx.fillRect(0,0,1200,700);
+  ctx.strokeStyle='rgba(112,83,42,.28)';ctx.lineWidth=4;ctx.strokeRect(12,12,1176,676);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  state.tray.forEach(item=>{
+    const toy=toyOf(item.toyId);if(!toy)return;
+    ctx.save();ctx.translate(item.x/100*1200,item.y/100*700);ctx.rotate((Number(item.rotation)||0)*Math.PI/180);
+    ctx.font=`${Math.round(72*(Number(item.scale)||1))}px "Segoe UI Emoji","Apple Color Emoji",sans-serif`;
+    ctx.fillText(toy.emoji,0,0);ctx.restore();
+  });
+  ctx.fillStyle='#40382d';ctx.textAlign='left';ctx.font='bold 24px "Microsoft YaHei",sans-serif';ctx.fillText('沙游心语 · 我的沙盘',28,726);
+  ctx.textAlign='right';ctx.font='18px "Microsoft YaHei",sans-serif';ctx.fillStyle='#6f6558';ctx.fillText('仅供自我探索，不构成心理诊断',1172,726);
+  canvas.toBlob(blob=>{
+    if(!blob)return toast('图片导出失败');
+    const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`沙游心语-${Date.now()}.png`;link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);toast('沙盘图片已导出');
+  },'image/png');
 }
 function goReport(){
   if(!state.tray.length){toast('沙盘还是空的，先摆放一些沙具');return}
@@ -901,6 +959,7 @@ function buildReport(){
 
 let generating=false;
 async function generateReport(focusOverride){
+  if(!CAP.loggedIn){$('#onboard').classList.add('open');toast('请先登录知乎，再生成沙盘报告');return}
   if(generating)return;generating=true;
   const focus=Array.isArray(focusOverride)?focusOverride:selectedAnalysisFocus();
   if(!focus.length){generating=false;toast('请至少选择一个分析方向');return}
@@ -918,6 +977,7 @@ async function generateReport(focusOverride){
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({features:r.features,aspects:focus})
       });
+      if(res.status===401){window.dispatchEvent(new CustomEvent('shayu:unauthorized'));generating=false;return}
       const d=await res.json();
       if(d.ok&&d.text){r.aiText=d.text;r.source='llm';r.model=d.model;r.analysisFocus=d.aspects||focus}
     }catch(e){/* 静默降级 */}
@@ -971,142 +1031,46 @@ function renderReport(){
     <div class="report-actions" style="margin-top:22px">
       <button class="btn btn-ghost" onclick="renderReportSetup()">🎛️ 调整分析方向</button>
       <button class="btn btn-ghost" onclick="regenerateReport()">🔄 按当前方向重读</button>
-      <button class="btn btn-warm" onclick="openPublish()">📤 发布到社群</button>
+      <button class="btn btn-warm" onclick="ShaYuCommunity.openPublish()">📤 发布到社群</button>
     </div>
   </div>`;
 }
 
-/* ══════════════════ 社群 ══════════════════ */
-let feedFilter='all';
-$('#feed-filters').addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  $$('#feed-filters button').forEach(x=>x.classList.toggle('active',x===b));
-  feedFilter=b.dataset.f;renderFeed();
-});
-function miniTrayHTML(tray){
-  return tray.map(it=>{const t=toyOf(it.toyId);
-    return t?`<span class="pe" style="left:${it.x}%;top:${it.y}%;transform:translate(-50%,-50%)">${t.emoji}</span>`:''}).join('');
-}
-function visiblePosts(){
-  return state.posts.filter(p=>{
-    if(feedFilter==='mine')return !!p.mine;
-    if(feedFilter==='collected')return !!p.collected;
-    return p.vis==='public'||p.mine;
-  });
-}
-function renderFeed(){
-  const list=visiblePosts();
-  $('#feed').innerHTML=list.length?list.map(p=>`
-    <div class="card post-card">
-      <div class="post-mini" onclick="openPost('${p.id}')">${miniTrayHTML(p.tray)}</div>
-      <div class="post-body">
-        <div class="post-title" onclick="openPost('${p.id}')">${escapeHtml(p.title)}</div>
-        <div class="post-meta">
-          <span>${p.anon?'👤 '+ANON_NAME:'🧑 '+escapeHtml(p.author)}</span><span>${fmtTime(p.time)}</span>
-          <span class="privacy-tag ${p.vis}">${p.vis==='public'?'公开':p.vis==='friends'?'仅好友':'仅自己'}</span>
-          ${p.mine?'<span class="pill">我的</span>':''}
-        </div>
-        <div class="post-summary">${escapeHtml(p.summary)}</div>
-        <div class="post-foot">
-          <button class="${p.liked?'liked':''}" onclick="toggleLike('${p.id}')">❤️ ${p.likes}</button>
-          <button class="${p.collected?'collected':''}" onclick="toggleCollect('${p.id}')">⭐ ${p.collects}</button>
-          <button onclick="openPost('${p.id}')">💬 ${p.comments.length}</button>
-          <button onclick="sharePost('${p.id}')">↗️ 分享</button>
-        </div>
-      </div>
-    </div>`).join('')
-  :`<div class="card" style="padding:46px;text-align:center;color:var(--ink-3)">
-      ${feedFilter==='mine'?'你还没有发布过沙盘':feedFilter==='collected'?'还没有收藏任何帖子':'暂无内容'}
-    </div>`;
-}
-function toggleLike(pid){
-  const p=state.posts.find(x=>x.id===pid);if(!p)return;
-  p.liked=!p.liked;p.likes+=p.liked?1:-1;save();renderFeed();
-}
-function toggleCollect(pid){
-  const p=state.posts.find(x=>x.id===pid);if(!p)return;
-  p.collected=!p.collected;p.collects+=p.collected?1:-1;save();renderFeed();
-  toast(p.collected?'⭐ 已收藏':'已取消收藏');
-}
-function sharePost(pid){
-  const p=state.posts.find(x=>x.id===pid);
-  const text=`我在「沙游心语」看到了沙盘《${p.title}》`;
-  if(navigator.share)navigator.share({title:p.title,text}).catch(()=>{});
-  else{navigator.clipboard?.writeText(text);toast('🔗 已复制分享内容')}
-}
-function openPost(pid){
-  const p=state.posts.find(x=>x.id===pid);if(!p)return;
-  $('#post-modal-body').innerHTML=`
-    <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap">
-      <div class="post-mini" style="width:220px;height:160px;cursor:default">${miniTrayHTML(p.tray)}</div>
-      <div style="flex:1;min-width:220px">
-        <h2 style="margin-bottom:4px">${escapeHtml(p.title)}</h2>
-        <div class="post-meta"><span>${p.anon?'👤 '+ANON_NAME:'🧑 '+escapeHtml(p.author)}</span><span>${fmtTime(p.time)}</span>
-        <span class="privacy-tag ${p.vis}">${p.vis==='public'?'公开':p.vis==='friends'?'仅好友':'仅自己'}</span></div>
-        <p style="font-size:14px;color:#4a443d;margin-top:8px;line-height:1.8">${escapeHtml(p.summary)}</p>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;margin:16px 0;border-top:1px solid #f2efe8;padding-top:12px;flex-wrap:wrap">
-      <button class="btn btn-sm ${p.liked?'btn-warm':'btn-ghost'}" onclick="toggleLike('${p.id}');openPost('${p.id}')">❤️ 点赞 ${p.likes}</button>
-      <button class="btn btn-sm ${p.collected?'btn-warm':'btn-ghost'}" onclick="toggleCollect('${p.id}');openPost('${p.id}')">⭐ 收藏 ${p.collects}</button>
-      <button class="btn btn-sm btn-ghost" onclick="sharePost('${p.id}')">↗️ 分享</button>
-    </div>
-    <h3 style="font-size:14.5px;margin-bottom:4px">评论（${p.comments.length}）</h3>
-    <div style="max-height:220px;overflow:auto">
-      ${p.comments.length?p.comments.map(c=>`<div class="comment-item">
-        <span class="who">${escapeHtml(c.who)}</span><span class="when">${fmtTime(c.time)}</span>
-        <p>${escapeHtml(c.text)}</p></div>`).join('')
-        :'<div style="color:var(--ink-3);font-size:13px;padding:16px 0">还没有评论，来抢沙发～</div>'}
-    </div>
-    <div class="comment-input-row">
-      <input id="new-cmt" placeholder="友善地回应这份沙盘……" maxlength="120">
-      <button class="btn btn-primary btn-sm" onclick="addComment('${p.id}')">发送</button>
-    </div>`;
-  $('#post-modal').classList.add('open');
-}
-function addComment(pid){
-  const v=$('#new-cmt').value.trim();
-  if(!v){toast('先写点什么吧');return}
-  state.posts.find(x=>x.id===pid).comments.push({who:ME,text:v,time:Date.now()});
-  save();openPost(pid);renderFeed();
-}
-
-/* ══════════════════ 发布 ══════════════════ */
-let publishVis='public';
-$('#vis-seg').addEventListener('click',e=>{
-  const b=e.target.closest('button');if(!b)return;
-  $$('#vis-seg button').forEach(x=>x.classList.toggle('active',x===b));
-  publishVis=b.dataset.v;
-});
-function openPublish(){
-  if(!state.report){toast('先生成沙盘报告');return}
-  $('#publish-mini').innerHTML=miniTrayHTML(state.tray);
-  $('#publish-summary').textContent=state.report.aiText||(state.report.themeText+' '+state.report.atmos);
-  $('#publish-title').value='';
-  $('#publish-modal').classList.add('open');
-}
-function confirmPublish(){
-  const title=$('#publish-title').value.trim()||state.report.title;
-  const anon=$('#anon-switch').classList.contains('on');
-  state.posts.unshift({
-    id:'my'+Date.now(),title,author:ME,anon,mine:true,vis:publishVis,time:Date.now(),
-    likes:0,collects:0,liked:false,collected:false,
-    summary:state.report.aiText||(state.report.themeText+' '+state.report.atmos),
-    tray:JSON.parse(JSON.stringify(state.tray)),comments:[]
-  });
-  save();closeModal('publish-modal');
-  toast(publishVis==='private'?'已保存，仅自己可见':'已发布到社群');
-  feedFilter='mine';
-  $$('#feed-filters button').forEach(x=>x.classList.toggle('active',x.dataset.f==='mine'));
-  switchView('community');
-}
+/* 社区与发布逻辑已经拆分到 public/js/community.js。 */
 
 /* ══════════════════ 初始化 ══════════════════ */
+let gameEntered=false;
+async function enterGame(){
+  if(gameEntered||!CAP.loggedIn)return;
+  gameEntered=true;
+  await renderZhihuFeed(curCat);
+  renderUnlockPanel(curCat);
+  await ShaYuCommunity.migrateLegacyPosts();
+  const sharedWork=new URLSearchParams(location.search).get('work');
+  if(sharedWork){
+    switchView('community');
+    await ShaYuCommunity.openPost(sharedWork);
+    history.replaceState({},'',location.pathname);
+  }
+}
+
 (async function init(){
   ShaYuUserCenter.init({
     escapeHtml,
     toast,
     switchView,
+    getCapabilities:()=>CAP,
+  });
+  ShaYuCommunity.init({
+    api:ShaYuApi,
+    escapeHtml,
+    fmtTime,
+    toast,
+    closeModal,
+    switchView,
+    toyOf,
+    getState:()=>state,
+    saveState:save,
     getCapabilities:()=>CAP,
   });
   refreshTop();
@@ -1116,12 +1080,14 @@ function confirmPublish(){
   renderSandbox();
   renderReport();
   await probeCapabilities();
-  await renderZhihuFeed(curCat);
-  renderUnlockPanel(curCat);
 
   // OAuth 回跳后的提示
   if(new URLSearchParams(location.search).get('login')==='ok'){
     toast('✓ 知乎账号已登录');
-    history.replaceState({},'','/');
+  }
+  if(CAP.loggedIn){
+    $('#onboard').classList.remove('open');
+    await enterGame();
+    if(!new URLSearchParams(location.search).get('work')) history.replaceState({},'',location.pathname);
   }
 })();

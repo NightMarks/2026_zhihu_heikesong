@@ -57,12 +57,19 @@ ZHIHU_REDIRECT_URI=https://212.129.255.239/auth/callback
 AI_API_KEY=填写大模型API秘钥
 AI_BASE_URL=https://api.openai-next.com/v1
 AI_MODEL=gpt-5.6-sol
+COMMUNITY_DATA_PATH=/app/data/local-store.json
 ```
 
 保护该文件：
 
 ```bash
 chmod 600 /opt/shayu/.env.production
+```
+
+创建独立于代码仓库的社区数据目录。容器中的 `node` 用户 UID/GID 为 1000：
+
+```bash
+sudo install -d -o 1000 -g 1000 -m 700 /opt/shayu-data
 ```
 
 ## 5. 构建并运行应用
@@ -74,6 +81,7 @@ sudo docker run -d \
   --name shayu-zhihu \
   --restart unless-stopped \
   --env-file /opt/shayu/.env.production \
+  -v /opt/shayu-data:/app/data \
   -p 127.0.0.1:3000:3000 \
   shayu-zhihu
 ```
@@ -154,11 +162,14 @@ https://212.129.255.239/api/capabilities
 检查：
 
 - `/healthz` 返回 `{"ok":true}`。
+- `/api/health` 的 `community` 为 `ready`。
 - `sourceType` 为 `api`。
 - `oauthReady` 为 `true`。
 - `aiReport` 为 `true`，`aiModel` 为 `gpt-5.6-sol`。
 - OAuth 登录后显示头像和用户中心。
 - 创作、关注列表和加载更多正常。
+- 未登录时只能看到登录门禁，不能进入沙盘或生成报告。
+- 用户 A 发布公开作品后，用户 B 能看到并进行点赞、收藏和评论。
 
 ## 知乎拒绝 IP 回调时
 
@@ -181,8 +192,15 @@ sudo docker run -d \
   --name shayu-zhihu \
   --restart unless-stopped \
   --env-file /opt/shayu/.env.production \
+  -v /opt/shayu-data:/app/data \
   -p 127.0.0.1:3000:3000 \
   shayu-zhihu
 ```
 
-当前 Session 保存在单个 Node 进程内存中，重启容器后用户需要重新登录。比赛单实例演示可以使用，正式发布前应迁移到 Redis 或数据库。
+社区作品和互动保存在宿主机 `/opt/shayu-data/local-store.json`，重建容器不会丢失。建议定期备份：
+
+```bash
+sudo cp /opt/shayu-data/local-store.json "/opt/shayu-data/local-store.$(date +%F-%H%M%S).bak"
+```
+
+当前 Session 仍保存在单个 Node 进程内存中，重启容器后用户需要重新登录。比赛单实例演示可以使用，正式发布前应迁移到 Redis 或数据库。

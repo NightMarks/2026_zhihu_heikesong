@@ -247,11 +247,29 @@ main{max-width:1120px;margin:0 auto;padding:26px 24px 80px}
   .report-card{padding:26px 20px}
 }
 
+/* ===== 登录门禁 ===== */
+.journey-auth{display:flex;align-items:center;justify-content:flex-end;gap:14px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid rgba(111,91,58,.16)}
+.journey-auth p{margin:0 auto 0 0;color:var(--ink-3);font-size:12.5px;line-height:1.6}
+.journey-auth .btn{min-width:220px;justify-content:center}
+.journey-auth .btn:disabled{opacity:.52;cursor:not-allowed;transform:none}
+
 /* ===== 社群 ===== */
 .community-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 .feed-filters{display:flex;gap:8px}
 .feed-filters button{padding:6px 14px;border-radius:99px;font-size:13px;border:1px solid var(--line);background:#fff;color:var(--ink-2)}
 .feed-filters button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.community-empty{padding:52px 24px;text-align:center;color:var(--ink-3)}
+.community-more{display:flex;margin:18px auto 0}
+.community-loading{text-align:center;padding:20px;color:var(--ink-3);font-size:13px}
+.post-detail-head{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.post-detail-tray{width:220px;height:160px;cursor:default;flex:0 0 auto}
+.post-detail-copy{flex:1;min-width:220px}
+.post-detail-copy h2{margin-bottom:4px}
+.post-detail-copy p{font-size:14px;color:#4a443d;margin-top:8px;line-height:1.8;white-space:pre-wrap}
+.post-detail-actions{display:flex;gap:10px;margin:16px 0;border-top:1px solid #f2efe8;padding-top:12px;flex-wrap:wrap}
+.comment-heading{font-size:14.5px;margin-bottom:4px}
+.comment-list{max-height:220px;overflow:auto}
+.comment-empty{color:var(--ink-3);font-size:13px;padding:16px 0}
 .post-card{padding:18px 20px;margin-bottom:14px;display:flex;gap:16px}
 .post-mini{width:150px;height:110px;flex-shrink:0;border-radius:10px;position:relative;overflow:hidden;background:repeating-linear-gradient(23deg,#f1e6d0 0 3px,#eee2cb 3px 6px);box-shadow:inset 0 0 0 3px #caa97a;cursor:pointer}
 .post-mini .pe{position:absolute;font-size:20px;filter:drop-shadow(0 2px 2px rgba(80,60,30,.3))}
