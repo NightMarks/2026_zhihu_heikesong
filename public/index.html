@@ -26,9 +26,7 @@
   <!-- ============ 探索沙具 ============ -->
   <section class="view active" id="view-explore">
     <div class="welcome-banner">
-      <h1>今天，你的内心想摆放点什么？</h1>
-      <p>游戏从一组<b>随机出现的沙具</b>开始。点选任意吸引你的沙具，会看到与之相关的<b>真实知乎内容</b>；
-         去知乎读完、回应、写下你自己的想法，再回来把创作链接贴回，就能解锁更多沙具。</p>
+      <h1>今天，你想摆放点什么？</h1>
     </div>
 
     <!-- 能力状态条：诚实告诉用户现在哪些是真的 -->
@@ -53,8 +51,8 @@
 
   <!-- ============ 沙盘 ============ -->
   <section class="view" id="view-tray">
-    <div class="section-title">🏖️ 我的沙盘 <span class="sub">从左侧沙具库挑选，点击沙盘放置</span></div>
-    <div class="hint">放置后可拖动调整；选中后按 Delete 或点「移除选中」撤下。完成后去生成报告。</div>
+    <div class="section-title">🏖️ 我的沙盘 <span class="sub">把左侧沙具拖入沙盘，也可以点选后放置</span></div>
+    <div class="hint">放置后可继续拖动调整；选中后按 Delete 或点「移除选中」撤下。完成后会直接生成完整报告。</div>
     <div class="tray-layout">
       <aside class="card library">
         <h3>🧺 沙具库 <span class="pill" id="lib-count"></span></h3>
@@ -90,10 +88,14 @@
   <section class="view" id="view-community">
     <div class="community-head">
       <div class="section-title" style="margin:0">💬 心语社群 <span class="sub">浏览他人的沙盘，留下你的回应</span></div>
-      <div class="feed-filters" id="feed-filters">
-        <button data-f="all" class="active">全部</button>
-        <button data-f="mine">我的发布</button>
-        <button data-f="collected">我的收藏</button>
+      <div class="community-controls">
+        <button class="btn btn-warm btn-sm" onclick="ShaYuCommunity.openMatcher()">🧩 寻找共鸣伙伴</button>
+        <button class="btn btn-ghost btn-sm friend-request-button" onclick="ShaYuCommunity.openFriendRequests()">🤝 好友申请 <span id="friend-request-count" hidden>0</span></button>
+        <div class="feed-filters" id="feed-filters">
+          <button data-f="all" class="active">全部</button>
+        <button data-f="mine">我的沙盘</button>
+          <button data-f="collected">我的收藏</button>
+        </div>
       </div>
     </div>
     <div class="note-inline" style="margin-bottom:16px">
@@ -159,7 +161,7 @@
       <label>可见范围</label>
       <div class="seg" id="vis-seg">
         <button data-v="public" class="active">🌐 公开可见</button>
-        <button data-v="friends" title="好友关系接入前，仅发布者自己可见">👥 仅好友可见</button>
+        <button data-v="friends" title="仅已互相接受好友申请的用户可见">👥 仅好友可见</button>
         <button data-v="private">🔒 仅自己可见</button>
       </div>
     </div>
@@ -169,7 +171,7 @@
     </div>
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
       <button class="btn btn-ghost" onclick="closeModal('publish-modal')">取消</button>
-      <button class="btn btn-primary" onclick="confirmPublish()">发布</button>
+      <button class="btn btn-primary" onclick="ShaYuCommunity.confirmPublish()">发布</button>
     </div>
   </div>
 </div>
@@ -179,6 +181,22 @@
   <div class="modal" style="max-width:720px">
     <button class="close-x" onclick="closeModal('post-modal')">✕</button>
     <div id="post-modal-body"></div>
+  </div>
+</div>
+
+<!-- 沙盘共鸣匹配 -->
+<div class="modal-mask" id="match-modal">
+  <div class="modal resonance-modal">
+    <button class="close-x" onclick="closeModal('match-modal')">✕</button>
+    <div id="match-modal-body"></div>
+  </div>
+</div>
+
+<!-- 好友申请 -->
+<div class="modal-mask" id="friend-modal">
+  <div class="modal friend-modal">
+    <button class="close-x" onclick="closeModal('friend-modal')">✕</button>
+    <div id="friend-modal-body"></div>
   </div>
 </div>
 

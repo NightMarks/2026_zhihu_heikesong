@@ -180,6 +180,35 @@ const CATEGORIES = [
   }
 ];
 
+/* 用户提供的实体沙具素材；emoji 只保留为图片加载失败时的文字语义。 */
+const TOY_IMAGES={
+  child:'/images/human/c2ce9c9043aa34923de4aae306af4a9b.jpg',student:'/images/human/4ed59ecd8d0985ed1e92d233d0a64a51.jpg',
+  worker:'/images/human/a8883bc92c6a5ea1fe565a64be744a24.jpg',doctor:'/images/human/02e0dcad2ca3696e4b98c8d8952020f8.jpg',
+  police:'/images/human/d1d3e66c2b9ed8caa805f5d7c7f5e768.jpg',elder:'/images/human/227d793dfe8a7dbf81141378725f7929.jpg',
+  mystery:'/images/human/31188389f933efb9649502f437b3807f.jpg',cat:'/images/animals/c6b8b59a57f5bf254c4f566befd54dc4.jpg',
+  dog:'/images/animals/80abfc4ab325cbe0e36e402b5d75bed4.jpg',bird:'/images/animals/9ce5f4dd8b36c54b9cea4719c95b33bf.jpg',
+  fish:'/images/animals/4c6c5a9d546332349976c2f68f80782f.png',horse:'/images/animals/51c2103c2d602144e2bf8d9d6852a9a5.jpg',
+  turtle:'/images/animals/f2cee562912600c9feaabd41f88f7840.jpg',butterfly:'/images/animals/e7ad2e21f2ad7f56525b6269f23e0c5b.jpg',
+  thatch:'/images/buildings/858a519cdffdb913bd2cb4dc85726539.jpg',stone:'/images/buildings/b922360754097bba52c523ecb8a54229.jpg',
+  cabin:'/images/buildings/04379daf871f13a84e249e66453f01ea.jpg',flat:'/images/buildings/f17fcf4b8049920245ddf14d5af1c091.jpg',
+  tower:'/images/buildings/0fd9757ca3b0013e56bf78c5b4a5a02b.png',ruin:'/images/buildings/91252af5667e803307304308cf85aab3.jpg',
+  castle:'/images/buildings/534cc6aa6fa5e687b65926cbcaa4c842.jpg',tree:'/images/nature/e8efc7b750b6609f1727efdd3be9cab9.jpg',
+  flower:'/images/nature/dc7bf3689f32daf5b4ad6b01be4bfcda.jpg',mountain:'/images/nature/61661e4c63c5e19fda84ddcac7f37239.jpg',
+  water:'/images/nature/570b3ae13416b5d709717ef245bf7e9e.jpg',sun:'/images/nature/ba07e23bc19003963020d22cbee9fd30.jpg',
+  moon:'/images/nature/0976c1b9632cdae4467cac5648e273e6.jpg',rock:'/images/nature/973bd06e24a808bfe23ebd02a5a193a3.jpg',
+  bike:'/images/transport/9ab477d608d85fb573bc38a9baeccb1b.jpg',car:'/images/transport/978a465d4b3f872b57f93d5d558c96aa.jpg',
+  train:'/images/transport/dc873b8d457c8ae3146bcadea7678d93.jpg',boat:'/images/transport/844cc9e71bd3ff88d463b57f9fc151ef.jpg',
+  plane:'/images/transport/f0f9afa0cb8b6e084b110987018ca546.jpg',key:'/images/Symbol/8e081d0dffecc9d9535748dffdece301.jpg',
+  door:'/images/buildings/3666164c83f0a7da41c6adee494974ed.jpg',bridge:'/images/buildings/fa78593fd9ac71f57c2825f8c7adf2ab.jpg',
+  mirror:'/images/Symbol/1912ba306bc34b519256d2d845371d30.jpg',fairy:'/images/fantasy/936c50f5a292fa869d0ed0653f244901.jpg',
+  unicorn:'/images/fantasy/05aed826ad5f5f8a446d3f0ea27e0d34.jpg',wizard:'/images/fantasy/c75a0e06803548c9c57a9242311be90f.jpg',
+  crystal:'/images/fantasy/b688a3ccfb056574cc2fc0d5388fef35.jpg',star:'/images/fantasy/c34c3daab90de619711af1ce886d5359.png',
+  rainbow:'/images/fantasy/954db4511233bb8f3a51c5532601f673.jpg',sword:'/images/attackandmonster/94d8c2876ccb653f144ce85abaec2bac.jpg',
+  shield:'/images/attackandmonster/265f9e67af041da6ccf0e4ebd1549e6c.jpg',dragon:'/images/fantasy/d5f55647155cbe808e6bcf2dda0dfa51.jpg',
+  beast:'/images/attackandmonster/bdee96bae33e8fa4730e4d3e99005b20.jpg',
+};
+CATEGORIES.forEach(category=>category.toys.forEach(toy=>{toy.image=TOY_IMAGES[toy.id]}));
+
 const OPEN_QUESTIONS = {
   people:['沙盘里的这些"人"之间，是什么关系？谁离你最近？','如果有一个角色代表此刻的你，你觉得是哪一个？','有没有谁被你放在了角落？那是TA想要的位置吗？'],
   animal:['这些动物里，哪一只最像现在的你？','它们是靠近人群的，还是独自待着？','如果它们能开口，最想对你说什么？'],
@@ -208,11 +237,19 @@ function save(){ShaYuState.save(state)}
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const catOf=tid=>CATEGORIES.find(c=>c.toys.some(t=>t.id===tid));
 const toyOf=tid=>{for(const c of CATEGORIES){const t=c.toys.find(t=>t.id===tid);if(t)return t}return null};
+const toyNamed=name=>CATEGORIES.flatMap(c=>c.toys).find(t=>t.name===name);
 const inspTotal=()=>Object.values(state.insp).reduce((a,b)=>a+b,0);
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600)}
 function closeModal(id){$('#'+id).classList.remove('open')}
 function fmtTime(ts){const d=Date.now()-ts;if(d<60e3)return'刚刚';if(d<3600e3)return Math.floor(d/60e3)+' 分钟前';if(d<86400e3)return Math.floor(d/3600e3)+' 小时前';return Math.floor(d/86400e3)+' 天前'}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function toyAssetHTML(toy,className='toy-asset'){
+  return `<img class="${className}" src="${toy.image}" alt="${escapeHtml(toy.name)}" loading="lazy" draggable="false">`;
+}
+function reportSymbolHTML(symbol){
+  const src=symbol.image||toyNamed(symbol.name)?.image;
+  return src?`<img src="${src}" alt="${escapeHtml(symbol.name)}">`:`<span>${symbol.emoji||'◆'}</span>`;
+}
 const ANON_NAME='一位旅人';
 let ME='旅人No.7';
 
@@ -294,7 +331,6 @@ function renderCapBar(){
     // 凭证齐备但回调不可达时算"部分可用"，不标成绿色 on，避免虚假承诺
     {on:CAP.loggedIn||CAP.oauthReady||CAP.sourceType==='cli', label:'账号身份', v:idLabel},
     {on:CAP.aiReport, label:'AI 解读', v:CAP.aiReport?(CAP.aiModel||'已配置'):'本地规则兜底'},
-    {no:true, label:'站内写互动', v:'平台未开放 · 需在知乎完成'},
   ];
   $('#cap-bar').innerHTML=`<div class="cap-bar">${items.map(i=>
     `<div class="cap-item ${i.no?'no':(i.on?'on':'off')}">
@@ -395,7 +431,7 @@ function switchView(name){
   $('#view-'+name).classList.add('active');
   if(name==='community')ShaYuCommunity.open();
   if(name==='tray'){renderLibrary();renderSandbox()}
-  if(name==='report') state.report?renderReport():(state.tray.length?renderReportSetup():renderReport());
+  if(name==='report') state.report?renderReport():(state.tray.length?generateReport():renderReport());
 }
 
 /* ══════════════════ 随机沙具开场 ══════════════════ */
@@ -409,7 +445,7 @@ function renderRandom(){
   $('#random-grid').innerHTML=randomPool.map(t=>{
     const owned=state.unlocked[t.id];
     return `<div class="toy-card ${owned?'owned':''}" onclick="gotoCategory('${t.cat.id}','${t.id}')">
-      <span class="emoji">${t.emoji}</span>
+      ${toyAssetHTML(t,'emoji toy-asset')}
       <div class="name">${t.name}</div>
       <div class="cat">${t.cat.icon} ${t.cat.name} · ${owned?'已解锁':'去知乎解锁'}</div>
     </div>`;
@@ -635,7 +671,7 @@ function renderUnlockPanel(catId){
         const afford=insp>=cost;
         return `<div class="unlock-item ${owned?'owned':''} ${afford||owned?'':'unaffordable'}" data-toy="${t.id}"
           ${owned?'':`onclick="tryUnlock('${catId}','${t.id}',${cost})"`}>
-          <span class="emoji" style="${owned?'':'filter:grayscale(1);opacity:.55'}">${t.emoji}</span>
+          ${toyAssetHTML(t,'emoji toy-asset'+(owned?'':' locked'))}
           <span class="nm">${t.name}</span>
           ${owned?'':`<span class="cost">💡${cost}</span>`}
         </div>`;
@@ -675,14 +711,23 @@ function renderLibrary(){
     $('#lib-grid').innerHTML=`<div class="lib-empty"><span class="big">🧺</span>沙具库还是空的<br>去「探索沙具」解锁吧</div>`;return;
   }
   $('#lib-grid').innerHTML=toys.map(t=>`
-    <div class="lib-toy ${selectedLib===t.id?'selected':''}" data-id="${t.id}" title="${t.name} · ${t.cat.name}">
-      <span class="e">${t.emoji}</span><span class="n">${t.name}</span>
+    <div class="lib-toy ${selectedLib===t.id?'selected':''}" data-id="${t.id}" title="${t.name} · ${t.cat.name}" draggable="true" aria-label="拖动${t.name}到沙盘">
+      ${toyAssetHTML(t,'e toy-asset')}<span class="n">${t.name}</span>
     </div>`).join('');
   $$('#lib-grid .lib-toy').forEach(el=>{
     el.addEventListener('click',()=>{
       selectedLib=el.dataset.id;selectedPlaced=-1;
       renderLibrary();renderSandbox();
       toast('点击沙盘任意位置放置「'+toyOf(selectedLib).name+'」');
+    });
+    el.addEventListener('dragstart',event=>{
+      selectedLib=el.dataset.id;
+      event.dataTransfer.effectAllowed='copy';
+      event.dataTransfer.setData('text/plain',selectedLib);
+      el.classList.add('dragging');$('#sandbox').classList.add('drop-ready');
+    });
+    el.addEventListener('dragend',()=>{
+      el.classList.remove('dragging');$('#sandbox').classList.remove('drop-ready');
     });
   });
 }
@@ -694,23 +739,35 @@ function renderSandbox(){
     d.className='placed'+(i===selectedPlaced?' selected':'');
     d.style.left=it.x+'%';d.style.top=it.y+'%';d.style.zIndex=String(i+1);
     d.style.transform=`translate(-50%,-50%) rotate(${Number(it.rotation)||0}deg) scale(${Number(it.scale)||1})`;
-    d.textContent=t.emoji;d.title=t.name;
+    d.innerHTML=toyAssetHTML(t,'placed-asset');d.title=t.name;
     d.addEventListener('pointerdown',e=>startDrag(e,i));
     sb.appendChild(d);
   });
   $('#tray-count').textContent='已摆放 '+state.tray.length+' 件沙具';
   updateHistoryButtons();
 }
+function placeToyAt(toyId,x,y){
+  if(!toyOf(toyId))return;
+  const previous=traySnapshot();
+  state.tray.push({toyId,x:Math.min(96,Math.max(4,x)),y:Math.min(94,Math.max(6,y)),rotation:0,scale:1});
+  selectedPlaced=state.tray.length-1;selectedLib=toyId;commitTray(previous);
+}
+$('#sandbox').addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';$('#sandbox').classList.add('drop-ready')});
+$('#sandbox').addEventListener('dragleave',e=>{if(!$('#sandbox').contains(e.relatedTarget))$('#sandbox').classList.remove('drop-ready')});
+$('#sandbox').addEventListener('drop',e=>{
+  e.preventDefault();$('#sandbox').classList.remove('drop-ready');
+  const toyId=e.dataTransfer.getData('text/plain');
+  const r=$('#sandbox').getBoundingClientRect();
+  placeToyAt(toyId,+(((e.clientX-r.left)/r.width)*100).toFixed(1),+(((e.clientY-r.top)/r.height)*100).toFixed(1));
+  toast(`已把「${toyOf(toyId)?.name||'沙具'}」放进沙盘`);
+});
 $('#sandbox').addEventListener('click',e=>{
   if(e.target.closest('.placed'))return;
   if(!selectedLib){toast('先从左侧沙具库选一件沙具');return}
   const r=$('#sandbox').getBoundingClientRect();
   const x=+(((e.clientX-r.left)/r.width)*100).toFixed(1);
   const y=+(((e.clientY-r.top)/r.height)*100).toFixed(1);
-  const previous=traySnapshot();
-  state.tray.push({toyId:selectedLib,x:Math.min(96,Math.max(4,x)),y:Math.min(94,Math.max(6,y)),rotation:0,scale:1});
-  selectedPlaced=state.tray.length-1;
-  commitTray(previous);
+  placeToyAt(selectedLib,x,y);
 });
 function startDrag(e,i){
   e.preventDefault();e.stopPropagation();
@@ -769,19 +826,26 @@ function layerSelected(direction){
   const [item]=state.tray.splice(selectedPlaced,1);state.tray.splice(target,0,item);selectedPlaced=target;
   commitTray(previous);
 }
-function exportTrayImage(){
+function loadAsset(src){
+  return new Promise(resolve=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>resolve(null);image.src=src});
+}
+async function exportTrayImage(){
   if(!state.tray.length)return toast('沙盘还是空的');
   const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=760;
   const ctx=canvas.getContext('2d');
-  const gradient=ctx.createLinearGradient(0,0,1200,760);gradient.addColorStop(0,'#f7e4b4');gradient.addColorStop(1,'#d8b97a');
-  ctx.fillStyle=gradient;ctx.fillRect(0,0,1200,700);
+  const sand=await loadAsset('/images/sandboard.jpg');
+  if(sand)ctx.drawImage(sand,0,0,1200,700);
+  else{const gradient=ctx.createLinearGradient(0,0,1200,760);gradient.addColorStop(0,'#f7e4b4');gradient.addColorStop(1,'#d8b97a');ctx.fillStyle=gradient;ctx.fillRect(0,0,1200,700)}
   ctx.strokeStyle='rgba(112,83,42,.28)';ctx.lineWidth=4;ctx.strokeRect(12,12,1176,676);
-  ctx.textAlign='center';ctx.textBaseline='middle';
+  const assets=new Map();
+  await Promise.all([...new Set(state.tray.map(item=>toyOf(item.toyId)?.image).filter(Boolean))].map(async src=>assets.set(src,await loadAsset(src))));
   state.tray.forEach(item=>{
     const toy=toyOf(item.toyId);if(!toy)return;
     ctx.save();ctx.translate(item.x/100*1200,item.y/100*700);ctx.rotate((Number(item.rotation)||0)*Math.PI/180);
-    ctx.font=`${Math.round(72*(Number(item.scale)||1))}px "Segoe UI Emoji","Apple Color Emoji",sans-serif`;
-    ctx.fillText(toy.emoji,0,0);ctx.restore();
+    const size=112*(Number(item.scale)||1),asset=assets.get(toy.image);
+    if(asset){ctx.globalCompositeOperation='multiply';ctx.drawImage(asset,-size/2,-size/2,size,size)}
+    else{ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.round(72*(Number(item.scale)||1))}px "Segoe UI Emoji","Apple Color Emoji",sans-serif`;ctx.fillText(toy.emoji,0,0)}
+    ctx.restore();
   });
   ctx.fillStyle='#40382d';ctx.textAlign='left';ctx.font='bold 24px "Microsoft YaHei",sans-serif';ctx.fillText('沙游心语 · 我的沙盘',28,726);
   ctx.textAlign='right';ctx.font='18px "Microsoft YaHei",sans-serif';ctx.fillStyle='#6f6558';ctx.fillText('仅供自我探索，不构成心理诊断',1172,726);
@@ -793,59 +857,24 @@ function exportTrayImage(){
 }
 function goReport(){
   if(!state.tray.length){toast('沙盘还是空的，先摆放一些沙具');return}
-  switchView('report');renderReportSetup();
+  state.report=null;save();switchView('report');
 }
 
 /* ══════════════════ 沙盘报告 ══════════════════ */
 const ANALYSIS_ASPECTS=[
-  {id:'narrative',icon:'📖',label:'整体主题与故事线',hint:'这幅沙盘像在讲述怎样的场景与进程'},
-  {id:'relationships',icon:'🫂',label:'角色关系与边界',hint:'人物、群体、距离、连接与保护'},
-  {id:'space',icon:'🧭',label:'空间布局与视觉重心',hint:'中心、四周、疏密、留白与方向'},
-  {id:'emotion',icon:'🌦️',label:'情绪氛围与张力',hint:'画面带来的感受与能量变化'},
-  {id:'resources',icon:'🪴',label:'支持资源与内在力量',hint:'庇护、伙伴、通路与可用的力量'},
-  {id:'change',icon:'🌉',label:'变化线索与下一幕',hint:'冲突、过渡，以及故事可能如何继续'},
-  {id:'reflection',icon:'💬',label:'开放式自我探索问题',hint:'把解释权交还给你的温和提问'},
+  {id:'observation',label:'客观画面'},
+  {id:'narrative',label:'整体主题与心理动力'},
+  {id:'space',label:'空间布局与心理联想'},
+  {id:'relationships',label:'角色关系与心理边界'},
+  {id:'emotion',label:'情绪氛围与防御线索'},
+  {id:'resources',label:'内在资源与成长力量'},
+  {id:'change',label:'变化方向与下一幕'},
+  {id:'reflection',label:'开放式自我探索问题'},
 ];
-const DEFAULT_ANALYSIS_ASPECTS=['narrative','space','reflection'];
-
-function renderReportSetup(){
-  if(!state.tray.length){renderReport();return}
-  const picked=state.report?.analysisFocus?.length?state.report.analysisFocus:DEFAULT_ANALYSIS_ASPECTS;
-  const a=analyzeTray();
-  $('#report-area').innerHTML=`
-    <div class="card report-wrap analysis-setup">
-      <div class="analysis-kicker">AI SANDBOX READING</div>
-      <h1>这一次，你想从哪里读起？</h1>
-      <p class="analysis-lead">同一座沙盘可以有很多入口。请选择 1—4 个方向，大模型只沿着你选择的线索观察，不替你下结论。</p>
-      <div class="analysis-scene-note">
-        <span>当前沙盘</span><b>${a.n} 件沙具</b><b>${a.counts.length} 个类别</b><b>中心区 ${a.center} 件</b>
-      </div>
-      <div class="analysis-options">
-        ${ANALYSIS_ASPECTS.map(item=>`<label class="analysis-option">
-          <input type="checkbox" value="${item.id}" ${picked.includes(item.id)?'checked':''} onchange="limitAnalysisFocus(this)">
-          <span class="analysis-mark">${item.icon}</span>
-          <span><b>${item.label}</b><small>${item.hint}</small></span>
-        </label>`).join('')}
-      </div>
-      <div class="analysis-privacy">沙盘结构会发送到服务器配置的大模型服务；不会发送知乎昵称、头像、关注列表或 OAuth 凭证。请以部署方公布的模型服务隐私规则为准。</div>
-      <div class="report-actions">
-        ${state.report?'<button class="btn btn-ghost" onclick="renderReport()">返回上一份报告</button>':''}
-        <button class="btn btn-primary analysis-submit" onclick="generateReport()">开始 AI 解读 <span>→</span></button>
-      </div>
-    </div>`;
-}
-
-function selectedAnalysisFocus(){
-  return [...$$('.analysis-option input:checked')].map(input=>input.value);
-}
-
-function limitAnalysisFocus(changed){
-  const selected=selectedAnalysisFocus();
-  if(selected.length>4){changed.checked=false;toast('最多选择 4 个分析方向')}
-}
+const DEFAULT_ANALYSIS_ASPECTS=ANALYSIS_ASPECTS.map(item=>item.id);
 
 function regenerateReport(){
-  generateReport(state.report?.analysisFocus||DEFAULT_ANALYSIS_ASPECTS);
+  generateReport();
 }
 
 function analyzeTray(){
@@ -872,6 +901,8 @@ function analyzeTray(){
 /** 把结构特征转成给直答的描述文本 */
 function featuresText(a){
   const catName=id=>CATEGORIES.find(c=>c.id===id).name;
+  const placed=a.items.slice(0,40).map((i,index)=>`${index+1}.${i.toy.name}：横向${i.x}%、纵向${i.y}%、缩放${Number(i.scale)||1}倍`).join('；');
+  const meanings=[...new Map(a.items.map(i=>[i.toyId,`${i.toy.name}：${i.toy.meaning}`])).values()].slice(0,24).join('；');
   return [
     `沙具总数：${a.n} 件`,
     `类别构成：${a.counts.map(([k,v])=>catName(k)+' '+v+'件').join('、')}`,
@@ -881,6 +912,9 @@ function featuresText(a){
     `平均最近邻距离：${a.avgNN.toFixed(1)}（小于13很紧密，大于26较疏离）`,
     `铺开程度：${(a.spread*100).toFixed(0)}%`,
     a.lonely.length?`明显孤立的沙具：${a.lonely.map(i=>i.toy.name).join('、')}`:'没有明显孤立的沙具',
+    `逐件位置（数组顺序仅代表当前图层，不等同于摆放顺序）：${placed}`,
+    `传统象征联想（只能作为提问线索，用户自己的解释优先）：${meanings}`,
+    '可观察范围限制：系统只记录最终画面，无法观察挑选时的犹豫、摆放顺序、过程中的情绪，也没有记录挖沙、掩埋、抹平或加水行为。',
   ].join('\n');
 }
 
@@ -950,7 +984,7 @@ function buildReport(){
   const title=cands[Math.floor(Math.random()*cands.length)];
   return {
     title, ...local,
-    symbols:picked.slice(0,3).map(i=>({emoji:i.toy.emoji,name:i.toy.name,meaning:i.toy.meaning,x:i.x,y:i.y})),
+    symbols:picked.slice(0,3).map(i=>({emoji:i.toy.emoji,image:i.toy.image,name:i.toy.name,meaning:i.toy.meaning,x:i.x,y:i.y})),
     stats:{n:a.n,cats:a.counts.length,density:(a.n/(a.spread*100+8)).toFixed(1)},
     features:featuresText(a),
     aiText:null, source:'local', time:Date.now()
@@ -958,14 +992,13 @@ function buildReport(){
 }
 
 let generating=false;
-async function generateReport(focusOverride){
+async function generateReport(){
   if(!CAP.loggedIn){$('#onboard').classList.add('open');toast('请先登录知乎，再生成沙盘报告');return}
   if(generating)return;generating=true;
-  const focus=Array.isArray(focusOverride)?focusOverride:selectedAnalysisFocus();
-  if(!focus.length){generating=false;toast('请至少选择一个分析方向');return}
+  const focus=[...DEFAULT_ANALYSIS_ASPECTS];
   $('#report-area').innerHTML=`<div class="card report-wrap generating">
-    <span class="spin">🔮</span>
-    <p style="margin-top:16px">正在沿着你选择的 ${focus.length} 条线索，阅读沙盘中的关系与故事……</p></div>`;
+    <span class="ouroboros-loader"><img src="/images/animals/168ad7adfda79d9bf130fcb38f5edc49.jpg" alt="衔尾蛇正在转动"></span>
+    <p style="margin-top:16px">正在从整体主题、空间、关系、情绪、资源与变化等方面阅读你的沙盘……</p></div>`;
 
   const r=buildReport();
   r.analysisFocus=focus;
@@ -975,7 +1008,7 @@ async function generateReport(focusOverride){
     try{
       const res=await fetch('/api/report',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({features:r.features,aspects:focus})
+        body:JSON.stringify({features:r.features})
       });
       if(res.status===401){window.dispatchEvent(new CustomEvent('shayu:unauthorized'));generating=false;return}
       const d=await res.json();
@@ -1001,7 +1034,7 @@ function renderReport(){
 
   $('#report-area').innerHTML=`
   <div class="card report-wrap report-card">
-    <h1>🔮 沙盘报告 · ${escapeHtml(r.title)}${badge}</h1>
+    <h1>沙盘报告 · ${escapeHtml(r.title)}${badge}</h1>
     <div class="report-sub">生成于 ${new Date(r.time).toLocaleString('zh-CN')} · 温和探索，非诊断</div>
     <div class="report-stats">
       <div class="stat-chip"><b>${r.stats.n}</b><span>沙具总数</span></div>
@@ -1016,7 +1049,7 @@ function renderReport(){
 
     <div class="report-block"><h2>🧭 主题线索</h2><p>${escapeHtml(r.themeText)}</p></div>
     <div class="report-block"><h2>🪞 沙具与位置</h2>
-      <ul>${r.symbols.map(s=>`<li><b>${s.emoji} ${s.name}</b>（${s.x<50?'左':'右'}${s.y<50?'上':'下'}区）—— ${escapeHtml(s.meaning)}</li>`).join('')}</ul>
+      <ul>${r.symbols.map(s=>`<li class="report-symbol">${reportSymbolHTML(s)}<span><b>${escapeHtml(s.name)}</b>（${s.x<50?'左':'右'}${s.y<50?'上':'下'}区）—— ${escapeHtml(s.meaning)}</span></li>`).join('')}</ul>
     </div>
     <div class="report-block"><h2>🌤️ 整体氛围</h2><p>${escapeHtml(r.atmos)}</p></div>
     <div class="report-block"><h2>📐 空间与结构</h2><p>${escapeHtml(r.pos)}</p></div>
@@ -1024,13 +1057,12 @@ function renderReport(){
       <ul>${r.questions.map(q=>`<li>${escapeHtml(q)}</li>`).join('')}</ul>
     </div>
     <div class="disclaimer">
-      ⚠️ 本报告只描述"你摆了什么、摆在哪里"，不对你本人作任何判断。沙具的象征意义没有标准答案，
-      只有你自己的解释才算数。本工具不是心理测评，也不能替代专业帮助；
+      ⚠️ 本报告依据最终画面的结构提供心理联想，不对你本人作确定判断，也无法观察完整制作过程。沙具的象征意义没有标准答案，
+      你的感受与解释始终优先。本工具不是心理测评或医学诊断，也不能替代专业帮助；
       若有持续的情绪困扰，请联系心理咨询师或拨打心理援助热线。
     </div>
     <div class="report-actions" style="margin-top:22px">
-      <button class="btn btn-ghost" onclick="renderReportSetup()">🎛️ 调整分析方向</button>
-      <button class="btn btn-ghost" onclick="regenerateReport()">🔄 按当前方向重读</button>
+      <button class="btn btn-ghost" onclick="regenerateReport()">🔄 重新生成完整报告</button>
       <button class="btn btn-warm" onclick="ShaYuCommunity.openPublish()">📤 发布到社群</button>
     </div>
   </div>`;

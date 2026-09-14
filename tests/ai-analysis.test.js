@@ -7,22 +7,20 @@ import {
   requestSandtrayAnalysis,
 } from '../server/ai-analysis.js';
 
-test('normalizeAspects keeps valid unique choices and limits selection to four', () => {
-  assert.deepEqual(
-    normalizeAspects(['space', 'space', 'emotion', 'unknown', 'resources', 'change', 'reflection']),
-    ['space', 'emotion', 'resources', 'change'],
-  );
+test('normalizeAspects always returns every analysis dimension', () => {
+  assert.deepEqual(normalizeAspects(['space']), [...DEFAULT_ASPECTS]);
   assert.deepEqual(normalizeAspects([]), [...DEFAULT_ASPECTS]);
   assert.deepEqual(normalizeAspects('space'), [...DEFAULT_ASPECTS]);
 });
 
-test('analysis prompt includes selected directions and non-diagnostic guardrails', () => {
+test('analysis prompt includes all psychological dimensions and non-diagnostic guardrails', () => {
   const messages = buildAnalysisMessages('沙具总数：3 件\n使用的沙具：桥、孩子、树', ['relationships', 'change']);
   assert.equal(messages[0].role, 'system');
   assert.match(messages[0].content, /不是进行心理诊断/);
   assert.match(messages[0].content, /禁止诊断疾病/);
-  assert.match(messages[1].content, /角色关系与边界/);
-  assert.match(messages[1].content, /变化线索与下一幕/);
+  assert.match(messages[0].content, /整体主题与心理动力/);
+  assert.match(messages[0].content, /空间布局与心理联想/);
+  assert.match(messages[0].content, /无法观察制作过程/);
   assert.match(messages[1].content, /桥、孩子、树/);
 });
 
@@ -49,7 +47,7 @@ test('requestSandtrayAnalysis uses configured model and returns trimmed content'
   assert.equal(request.model, 'gpt-5.6-sol');
   assert.equal(request.messages.length, 2);
   assert.equal(result.text, '一段温和的观察。');
-  assert.deepEqual(result.aspects, ['space']);
+  assert.deepEqual(result.aspects, [...DEFAULT_ASPECTS]);
 });
 
 test('requestSandtrayAnalysis rejects an empty model response', async () => {

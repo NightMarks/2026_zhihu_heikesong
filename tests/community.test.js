@@ -69,3 +69,78 @@ test('a corrupt store becomes read-only instead of overwriting user data', t => 
   assert.throws(() => store.update(() => {}), /禁止写入/);
   assert.equal(fs.readFileSync(file, 'utf8'), '{broken json');
 });
+
+test('sandtray matching ranks structurally similar public works first', t => {
+  const { service, input } = fixture(t);
+  const closeOwner = { id: 'close-owner', nick: '桥边的人' };
+  const farOwner = { id: 'far-owner', nick: '山里的人' };
+  const seeker = { id: 'seeker', nick: '寻找共鸣的人' };
+  const close = service.createWork(closeOwner, {
+    ...input,
+    title: '门与桥',
+    tray: [
+      { toyId: 'bridge', x: 48, y: 55 },
+      { toyId: 'door', x: 65, y: 50 },
+      { toyId: 'cabin', x: 30, y: 58 },
+    ],
+    aspects: ['relationships', 'change'],
+  });
+  service.createWork(farOwner, {
+    ...input,
+    title: '龙与剑',
+    tray: [
+      { toyId: 'dragon', x: 10, y: 10 },
+      { toyId: 'sword', x: 90, y: 90 },
+    ],
+    aspects: ['emotion'],
+  });
+
+  const matches = service.findMatches(seeker.id, {
+    tray: [
+      { toyId: 'bridge', x: 50, y: 60 },
+      { toyId: 'key', x: 65, y: 48 },
+      { toyId: 'castle', x: 28, y: 55 },
+    ],
+    aspects: ['relationships', 'change'],
+  });
+
+  assert.equal(matches[0].work.id, close.id);
+  assert.ok(matches[0].score > matches[1].score);
+  assert.ok(matches[0].reasons.some(reason => reason.includes('象征类')));
+});
+
+test('accepted friend requests unlock friends-only works', t => {
+  const { service, owner, visitor, input } = fixture(t);
+  const publicWork = service.createWork(owner, input);
+  service.createWork(owner, { ...input, title: '只和朋友分享', visibility: 'friends' });
+  assert.equal(service.listWorks(visitor.id).items.length, 1);
+
+  const request = service.sendFriendRequest(publicWork.id, visitor, '我们的沙盘很有共鸣。');
+  assert.equal(service.listFriendRequests(owner).incoming[0].id, request.id);
+  assert.throws(
+    () => service.sendFriendRequest(publicWork.id, visitor, '重复申请'),
+    error => error.status === 409,
+  );
+  assert.throws(
+    () => service.respondFriendRequest(request.id, visitor, 'accepted'),
+    error => error.status === 403,
+  );
+
+  service.respondFriendRequest(request.id, owner, 'accepted');
+  assert.equal(service.listWorks(visitor.id).items.length, 2);
+  assert.equal(service.listFriendRequests(visitor).outgoing[0].status, 'accepted');
+});
+
+test('only the owner can delete a published sandtray', t => {
+  const { service, owner, visitor, input } = fixture(t);
+  const work = service.createWork(owner, input);
+  service.sendFriendRequest(work.id, visitor, '想认识你。');
+
+  assert.throws(
+    () => service.deleteWork(work.id, visitor.id),
+    error => error.status === 403,
+  );
+  assert.deepEqual(service.deleteWork(work.id, owner.id), { deleted: true, id: work.id });
+  assert.equal(service.listWorks(owner.id).items.length, 0);
+  assert.equal(service.listFriendRequests(owner).incoming.length, 0);
+});

@@ -30,7 +30,7 @@
     items = [];
     nextCursor = null;
     renderFeed();
-    await loadMore();
+    await Promise.allSettled([loadMore(), refreshFriendBadge()]);
   }
 
   async function loadMore() {
@@ -53,7 +53,7 @@
     return tray.map(item => {
       const toy = bridge.toyOf(item.toyId);
       return toy
-        ? `<span class="pe" style="left:${Number(item.x)}%;top:${Number(item.y)}%;transform:translate(-50%,-50%) rotate(${Number(item.rotation)||0}deg) scale(${Number(item.scale)||1})">${toy.emoji}</span>`
+        ? `<span class="pe" style="left:${Number(item.x)}%;top:${Number(item.y)}%;transform:translate(-50%,-50%) rotate(${Number(item.rotation)||0}deg) scale(${Number(item.scale)||1})"><img src="${toy.image}" alt="${bridge.escapeHtml(toy.name)}"></span>`
         : '';
     }).join('');
   }
@@ -82,6 +82,7 @@
             <button class="${post.collected ? 'collected' : ''}" onclick="ShaYuCommunity.toggleCollect('${post.id}')">⭐ ${post.collects}</button>
             <button onclick="ShaYuCommunity.openPost('${post.id}')">💬 ${post.commentCount}</button>
             <button onclick="ShaYuCommunity.sharePost('${post.id}')">↗️ 分享</button>
+            ${post.mine ? `<button class="post-delete" onclick="ShaYuCommunity.deletePost('${post.id}')">🗑️ 删除</button>` : ''}
           </div>
         </div>
       </article>`).join('');
@@ -143,6 +144,7 @@
           <button class="btn btn-sm ${post.liked ? 'btn-warm' : 'btn-ghost'}" onclick="ShaYuCommunity.reactInPost('${post.id}','like')">❤️ 点赞 ${post.likes}</button>
           <button class="btn btn-sm ${post.collected ? 'btn-warm' : 'btn-ghost'}" onclick="ShaYuCommunity.reactInPost('${post.id}','collect')">⭐ 收藏 ${post.collects}</button>
           <button class="btn btn-sm btn-ghost" onclick="ShaYuCommunity.sharePost('${post.id}')">↗️ 分享</button>
+          ${post.mine ? `<button class="btn btn-sm btn-danger" onclick="ShaYuCommunity.deletePost('${post.id}')">🗑️ 删除这座沙盘</button>` : ''}
         </div>
         <h3 class="comment-heading">评论（${post.comments?.length || 0}）</h3>
         <div class="comment-list">
@@ -180,6 +182,111 @@
     } catch (error) { bridge.toast(error.message); }
   }
 
+  async function deletePost(id) {
+    if (!global.confirm('确定删除这座已发布的沙盘吗？删除后无法恢复。')) return;
+    try {
+      await bridge.api.deleteCommunityWork(id);
+      items = items.filter(item => item.id !== id);
+      bridge.closeModal('post-modal');
+      renderFeed();
+      bridge.toast('已删除这座沙盘');
+    } catch (error) { bridge.toast(error.message || '删除失败'); }
+  }
+
+  async function openMatcher() {
+    const state = bridge.getState();
+    if (!state.tray?.length) return bridge.toast('先完成一座自己的沙盘，才能寻找共鸣');
+    $('#match-modal-body').innerHTML = '<div class="resonance-loading"><span>🫧</span><p>正在比较沙具选择、空间结构与关注方向…</p></div>';
+    $('#match-modal').classList.add('open');
+    try {
+      const data = await bridge.api.matchCommunityWorks({
+        tray: state.tray,
+        aspects: state.report?.analysisFocus || [],
+      });
+      renderMatches(Array.isArray(data.items) ? data.items : []);
+    } catch (error) {
+      $('#match-modal-body').innerHTML = `<div class="community-empty">${bridge.escapeHtml(error.message || '暂时无法寻找共鸣')}</div>`;
+    }
+  }
+
+  function renderMatches(matches) {
+    $('#match-modal-body').innerHTML = matches.length ? `
+      <div class="resonance-intro"><span>RESONANCE MAP</span><h2>与你的沙盘产生回声</h2><p>匹配只比较作品结构与选择，不推断性格。分数越高，代表沙具类别、布局或关注方向越相近。</p></div>
+      <div class="resonance-grid">${matches.map(match => `
+        <article class="resonance-card">
+          <div class="resonance-preview">${miniTrayHTML(match.work.tray)}<b>${match.score}<small>%</small></b></div>
+          <div class="resonance-copy">
+            <span class="resonance-author">${match.work.anonymous ? '👤' : '🧑'} ${bridge.escapeHtml(match.work.author?.nick || '知乎用户')}</span>
+            <h3>${bridge.escapeHtml(match.work.title)}</h3>
+            <div class="resonance-reasons">${match.reasons.map(reason => `<span>${bridge.escapeHtml(reason)}</span>`).join('')}</div>
+            <div class="resonance-actions">
+              <button class="btn btn-ghost btn-sm" onclick="ShaYuCommunity.openPost('${match.work.id}')">看看作品</button>
+              <button class="btn btn-primary btn-sm" onclick="ShaYuCommunity.sendFriendRequest('${match.work.id}',this)">发送好友申请</button>
+            </div>
+          </div>
+        </article>`).join('')}</div>`
+      : '<div class="community-empty">还没有可匹配的公开沙盘。邀请队友先发布一座作品吧。</div>';
+  }
+
+  async function sendFriendRequest(workId, button) {
+    if (button) button.disabled = true;
+    try {
+      await bridge.api.sendFriendRequest(workId, '我们的沙盘有一些相似之处，想和你认识、交流彼此的看法。');
+      if (button) button.textContent = '申请已发送';
+      bridge.toast('好友申请已送达，等待对方回应');
+    } catch (error) {
+      if (button) button.disabled = false;
+      bridge.toast(error.message || '好友申请发送失败');
+    }
+  }
+
+  async function refreshFriendBadge() {
+    try {
+      const data = await bridge.api.friendRequests();
+      const pending = (data.incoming || []).filter(request => request.status === 'pending').length;
+      const badge = $('#friend-request-count');
+      if (badge) {
+        badge.textContent = String(pending);
+        badge.hidden = !pending;
+      }
+      return data;
+    } catch { return { incoming: [], outgoing: [] }; }
+  }
+
+  async function openFriendRequests() {
+    $('#friend-modal-body').innerHTML = '<div class="community-loading">正在读取好友申请…</div>';
+    $('#friend-modal').classList.add('open');
+    const data = await refreshFriendBadge();
+    const incoming = data.incoming || [];
+    const outgoing = data.outgoing || [];
+    $('#friend-modal-body').innerHTML = `
+      <div class="friend-request-head"><span>CONNECTIONS</span><h2>从相似的沙盘开始认识</h2><p>只有双方同意后才会成为好友，并解锁“仅好友可见”的作品。</p></div>
+      <div class="friend-columns">
+        <section><h3>收到的申请</h3>${incoming.length ? incoming.map(friendRequestCard).join('') : '<div class="friend-empty">暂时没有收到申请</div>'}</section>
+        <section><h3>发出的申请</h3>${outgoing.length ? outgoing.map(friendRequestCard).join('') : '<div class="friend-empty">还没有发出申请</div>'}</section>
+      </div>`;
+  }
+
+  function friendRequestCard(request) {
+    const statusLabel = request.status === 'accepted' ? '已成为好友' : request.status === 'rejected' ? '已婉拒' : '等待回应';
+    const actions = request.direction === 'incoming' && request.status === 'pending'
+      ? `<div class="friend-actions"><button class="btn btn-primary btn-sm" onclick="ShaYuCommunity.respondFriendRequest('${request.id}','accepted')">接受</button><button class="btn btn-ghost btn-sm" onclick="ShaYuCommunity.respondFriendRequest('${request.id}','rejected')">婉拒</button></div>`
+      : `<span class="friend-status ${request.status}">${statusLabel}</span>`;
+    return `<article class="friend-request-card">
+      <div class="friend-avatar">${request.user?.avatar ? `<img src="${bridge.escapeHtml(request.user.avatar)}" alt="" referrerpolicy="no-referrer">` : bridge.escapeHtml(request.user?.nick?.slice(0, 1) || '知')}</div>
+      <div><b>${bridge.escapeHtml(request.user?.nick || '知乎用户')}</b><small>因《${bridge.escapeHtml(request.workTitle)}》而相遇</small><p>${bridge.escapeHtml(request.message)}</p>${actions}</div>
+    </article>`;
+  }
+
+  async function respondFriendRequest(requestId, status) {
+    try {
+      await bridge.api.respondFriendRequest(requestId, status);
+      bridge.toast(status === 'accepted' ? '你们已经成为好友' : '已婉拒这次申请');
+      await openFriendRequests();
+      await open();
+    } catch (error) { bridge.toast(error.message || '处理申请失败'); }
+  }
+
   function openPublish() {
     const state = bridge.getState();
     if (!bridge.getCapabilities().loggedIn) return bridge.toast('请先登录知乎');
@@ -201,6 +308,7 @@
         tray: state.tray.map(({ toyId, x, y, rotation, scale }) => ({ toyId, x, y, rotation, scale })),
         visibility: publishVisibility,
         anonymous,
+        aspects: state.report?.analysisFocus || [],
       });
       bridge.closeModal('publish-modal');
       bridge.toast(publishVisibility === 'public' ? '已发布，其他玩家现在可以看见' : '作品已安全保存');
@@ -223,6 +331,7 @@
           tray: post.tray,
           visibility: post.vis,
           anonymous: post.anon,
+          aspects: post.analysisFocus || [],
         });
         state.communityMigrated[post.id] = true;
         migrated += 1;
@@ -243,9 +352,14 @@
     toggleCollect,
     reactInPost,
     addComment,
+    deletePost,
     sharePost,
     openPublish,
     confirmPublish,
     migrateLegacyPosts,
+    openMatcher,
+    sendFriendRequest,
+    openFriendRequests,
+    respondFriendRequest,
   });
 })(window);

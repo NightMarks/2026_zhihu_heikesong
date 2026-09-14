@@ -31,12 +31,29 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
+    deleteCommunityWork: id => request(`/api/community/${encodeURIComponent(id)}`, { method: 'DELETE' }),
     toggleCommunityLike: id => request(`/api/community/${encodeURIComponent(id)}/like`, { method: 'POST' }),
     toggleCommunityCollect: id => request(`/api/community/${encodeURIComponent(id)}/collect`, { method: 'POST' }),
     addCommunityComment: (id, text) => request(`/api/community/${encodeURIComponent(id)}/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text }),
+    }),
+    matchCommunityWorks: payload => request('/api/community/matches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+    friendRequests: () => request('/api/community/friend-requests'),
+    sendFriendRequest: (workId, message) => request(`/api/community/${encodeURIComponent(workId)}/friend-requests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    }),
+    respondFriendRequest: (requestId, status) => request(`/api/community/friend-requests/${encodeURIComponent(requestId)}/respond`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
     }),
   });
 })(window);
