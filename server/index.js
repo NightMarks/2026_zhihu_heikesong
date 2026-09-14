@@ -17,7 +17,12 @@ import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import * as zh from './zhihu.js';
 import * as cli from './cli-source.js';
-import { beginOAuth, consumeOAuth } from './oauth-state.js';
+import {
+  beginOAuth,
+  consumeOAuth,
+  confirmOAuth,
+  stageOAuthConfirmation,
+} from './oauth-state.js';
 import {
   ANALYSIS_ASPECTS,
   createAnalysisClient,
@@ -109,6 +114,7 @@ const analysisClient = createAnalysisClient({
 const communityService = new CommunityService(createJsonStore(cfg.communityDataPath));
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: false, limit: '16kb' }));
 app.use(cookieParser());
 app.use((req, res, next) => {
   res.set({
@@ -247,8 +253,9 @@ app.get('/auth/login', (req, res) => {
   s.oauthReturnTo = requestedReturn.startsWith('/') && !requestedReturn.startsWith('//')
     ? requestedReturn.slice(0, 1000)
     : '/';
-  const state = beginOAuth(s);
-  res.redirect(zh.authorizeUrl(cfg.appId, cfg.redirectUri, state));
+  beginOAuth(s);
+  delete s.oauthLastError;
+  res.redirect(zh.authorizeUrl(cfg.appId, cfg.redirectUri));
 });
 
 app.get('/auth/callback', async (req, res) => {
@@ -267,10 +274,11 @@ app.get('/auth/callback', async (req, res) => {
     return res.status(400).send(errPage('授权失败', '回调没有带回授权码。请确认已在知乎完成登录与安全验证。'));
   }
 
+  let confirmationNonce;
   try {
-    consumeOAuth(s, typeof req.query.state === 'string' ? req.query.state : '');
+    confirmationNonce = consumeOAuth(s);
   } catch (error) {
-    s.oauthLastError = { stage: 'state', message: error.message, at: Date.now() };
+    s.oauthLastError = { stage: 'attempt', message: error.message, at: Date.now() };
     return res.status(400).send(errPage(
       '授权校验失败',
       `${escapeAttr(error.message)}。请回到首页重新点击「用知乎登录」。`,
@@ -279,7 +287,7 @@ app.get('/auth/callback', async (req, res) => {
 
   try {
     const tok = await zh.exchangeToken(cfg.appId, cfg.appKey, cfg.redirectUri, code);
-    s.oauth = { token: tok.access_token, expiresAt: Date.now() + (tok.expires_in || 3600) * 1000 };
+    const oauth = { token: tok.access_token, expiresAt: Date.now() + (tok.expires_in || 3600) * 1000 };
 
     // ① 首选：OAuth 用户信息接口 —— 能同时拿到昵称与头像
     let profile = null;
@@ -298,7 +306,7 @@ app.get('/auth/callback', async (req, res) => {
       } catch { /* 内容为空不影响登录成功 */ }
     }
 
-    s.user = {
+    const user = {
       id:       profile?.urlToken
         || crypto.createHash('sha256').update(profile?.url || profile?.nick || tok.access_token).digest('hex').slice(0, 24),
       nick:     profile?.nick || '知乎用户',
@@ -308,11 +316,26 @@ app.get('/auth/callback', async (req, res) => {
       description: profile?.description || null,
       loginAt:  Date.now(),
     };
-    delete s.oauthLastError;
     const returnTo = s.oauthReturnTo || '/';
     delete s.oauthReturnTo;
-    const separator = returnTo.includes('?') ? '&' : '?';
-    res.redirect(`${returnTo}${separator}login=ok`);
+    stageOAuthConfirmation(s, confirmationNonce, { oauth, user, returnTo });
+
+    const nick = escapeAttr(user.nick);
+    const avatar = user.avatar
+      ? `<img src="${escapeAttr(user.avatar)}" alt="" referrerpolicy="no-referrer" style="width:64px;height:64px;border-radius:50%;object-fit:cover">`
+      : `<div style="width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:#f1e7d5;font-size:28px">${nick.slice(0, 1)}</div>`;
+    return res.send(`<!doctype html><meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <div style="font-family:-apple-system,PingFang SC,sans-serif;max-width:520px;margin:80px auto;padding:28px 32px;border:1px solid #e8e1d5;border-radius:14px;line-height:1.8;text-align:center">
+        ${avatar}<h2 style="margin:12px 0 4px">确认登录账号</h2>
+        <p style="color:#40382f">知乎已授权账号：<strong>${nick}</strong></p>
+        <p style="color:#6f665c;font-size:14px">请确认这是你刚刚授权的账号。此步骤用于防止第三方把其他账号注入你的登录会话。</p>
+        <form method="post" action="/auth/confirm">
+          <input type="hidden" name="nonce" value="${escapeAttr(confirmationNonce)}">
+          <button type="submit" style="border:0;border-radius:9px;padding:11px 22px;background:#1772f6;color:white;font-weight:700;cursor:pointer">确认并进入沙盘</button>
+        </form>
+        <a href="/" style="display:inline-block;margin-top:14px;color:#6f665c;font-size:14px">取消并返回</a>
+      </div>`);
   } catch (e) {
     s.oauthLastError = { stage: 'token', message: String(e?.message || e).slice(0, 300), at: Date.now() };
     console.error('[oauth:token]', e?.message || e);
@@ -493,6 +516,24 @@ app.post('/api/report', async (req, res) => {
   } catch (e) {
     console.error('[ai-report]', e?.status || '', e?.message || e);
     res.json({ ok: false, error: '大模型暂时未返回结果，请稍后重试', fallback: true });
+  }
+});
+
+app.post('/auth/confirm', (req, res) => {
+  const s = session(req, res);
+  try {
+    const pending = confirmOAuth(s, typeof req.body?.nonce === 'string' ? req.body.nonce : '');
+    s.oauth = pending.oauth;
+    s.user = pending.user;
+    delete s.oauthLastError;
+    const separator = pending.returnTo.includes('?') ? '&' : '?';
+    return res.redirect(`${pending.returnTo}${separator}login=ok`);
+  } catch (error) {
+    s.oauthLastError = { stage: 'confirm', message: error.message, at: Date.now() };
+    return res.status(400).send(errPage(
+      '登录确认失败',
+      `${escapeAttr(error.message)}。请回到首页重新点击「用知乎登录」。`,
+    ));
   }
 });
 

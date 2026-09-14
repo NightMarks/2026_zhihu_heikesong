@@ -87,13 +87,15 @@ export async function zhida(secret, messages, model = 'zhida-thinking-1p5') {
 
 /* ══════════════════ OAuth 用户登录 ══════════════════ */
 
-/** 构造知乎授权页地址，用户点击后跳转过去登录 */
-export function authorizeUrl(appId, redirectUri, state) {
+/**
+ * 构造知乎授权页地址。知乎当前公开文档只声明这三个查询参数；
+ * 登录注入保护由本站回调后的同源确认步骤完成。
+ */
+export function authorizeUrl(appId, redirectUri) {
   const p = new URLSearchParams({
     app_id: appId,
     redirect_uri: redirectUri,
     response_type: 'code',
-    state,
   });
   return `${OAUTH}/authorize?${p}`;
 }

@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { authorizeUrl, oauthUserInfo } from '../server/zhihu.js';
 
-test('authorizeUrl includes one-time OAuth state', () => {
-  const url = new URL(authorizeUrl('504', 'https://game.example/auth/callback', 'secure-state'));
+test('authorizeUrl matches the exact parameter set documented by Zhihu OAuth', () => {
+  const url = new URL(authorizeUrl('504', 'https://game.example/auth/callback'));
   assert.equal(url.origin + url.pathname, 'https://openapi.zhihu.com/authorize');
   assert.equal(url.searchParams.get('app_id'), '504');
   assert.equal(url.searchParams.get('redirect_uri'), 'https://game.example/auth/callback');
   assert.equal(url.searchParams.get('response_type'), 'code');
-  assert.equal(url.searchParams.get('state'), 'secure-state');
+  assert.equal(url.searchParams.has('state'), false);
+  assert.equal([...url.searchParams].length, 3);
 });
 
 test('oauthUserInfo maps the official Zhihu profile fields without relying on numeric uid', async t => {
