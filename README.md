@@ -42,7 +42,7 @@
 - 登录用户中心：资料、创作和关注列表，支持“加载更多”分页
 - 用户创作链接归属验证；需要可用数据源和用户身份
 - 沙具库与拖拽式沙盘
-- 本地规则报告与知乎 AI 报告接口
+- 可选择分析方向的大模型沙盘报告，并保留本地规则兜底
 - 游戏内本地社区和浏览器自动保存
 - API 不可用时的降级处理
 
@@ -87,7 +87,7 @@ Node.js + Express（内容代理、OAuth、验证、AI 报告）
 
 ## 环境要求
 
-- Node.js 20 或更高版本，推荐当前 LTS
+- Node.js 22 或更高版本，推荐当前 LTS
 - npm
 - Chrome、Edge 或其他现代浏览器
 
@@ -150,8 +150,8 @@ npm start
 | 模式 | 需要配置 | 可以使用 | 暂不可用 |
 |---|---|---|---|
 | 无知乎凭证 | 无 | 沙具、解锁、沙盘、本地报告、本地社区、示例内容 | 实时内容、真实登录、归属验证 |
-| 内容 API | `ZHIHU_ACCESS_SECRET` | 上述功能、搜索、热榜、AI 报告 | OAuth 登录和登录用户归属验证 |
-| 完整在线 | Access Secret、App ID、App Key、公网 HTTPS 回调 | 内容 API、OAuth、用户内容、归属验证 | 平台未开放的代点赞、代评论、代发布 |
+| 内容 API | `ZHIHU_ACCESS_SECRET` | 上述功能、搜索、热榜 | OAuth 登录和大模型报告 |
+| 完整在线 | 知乎凭证、AI Key、公网 HTTPS 回调 | 内容 API、OAuth、用户内容、大模型分析、归属验证 | 平台未开放的代点赞、代评论、代发布 |
 | 本地 CLI 数据源 | 已授权 CLI | Windows/macOS 上的搜索、热榜、本人创作、关注与校验 | OAuth 仍需要 App ID、App Key 和公网 HTTPS 回调 |
 
 这里的“无知乎凭证”表示不连接知乎 API，不代表首次安装可以完全断网；`npm ci` 仍可能需要网络。
@@ -181,6 +181,9 @@ ZHIHU_ACCESS_SECRET=
 ZHIHU_APP_ID=
 ZHIHU_APP_KEY=
 ZHIHU_REDIRECT_URI=https://your-domain.example/auth/callback
+AI_API_KEY=
+AI_BASE_URL=https://api.openai-next.com/v1
+AI_MODEL=gpt-5.6-sol
 PORT=3000
 ```
 
@@ -190,9 +193,14 @@ PORT=3000
 | `ZHIHU_APP_ID` | 知乎 OAuth 应用标识 |
 | `ZHIHU_APP_KEY` | OAuth 服务端秘钥 |
 | `ZHIHU_REDIRECT_URI` | OAuth 完成后的公网 HTTPS 回调 |
+| `AI_API_KEY` | 仅服务端使用的大模型 API Key |
+| `AI_BASE_URL` | OpenAI 兼容接口地址 |
+| `AI_MODEL` | 沙盘分析模型，默认 `gpt-5.6-sol` |
 | `PORT` | 服务端口，默认 3000 |
 
 真实秘钥只能放在 `.env` 或部署平台的 Secret 中，不得写入 `public/`、README、截图或提交记录。`.env` 已被 `.gitignore` 忽略。
+
+示例中的 `api.openai-next.com` 是 OpenAI 兼容网关，并非 OpenAI 官方 `api.openai.com`。上线前请确认该服务商支持所选模型，并审阅其数据留存、隐私和计费规则；发送给模型的内容仅应包含沙盘结构数据。
 
 ### OAuth 说明
 
@@ -239,6 +247,8 @@ PORT=3000
 
 - 沙盘、灵感值、解锁记录和社区帖子保存在浏览器 `localStorage`。
 - 登录 Session 和已领取记录保存在 Node.js 服务器内存。
+- 大模型报告支持整体叙事、角色关系、空间重心、情绪氛围、支持资源、变化线索和开放问题；每次选择 1—4 项。
+- 沙盘报告是非诊断式叙事观察，不是心理测评，不应替代心理咨询或医疗建议。
 - 清除浏览器数据会丢失本地作品，重启服务会清除登录状态。
 - OAuth 需要公网 HTTPS；本地 `127.0.0.1` 只能验证配置与页面状态，不能完成知乎回调。
 - 社区暂时不是跨设备、多人共享社区。

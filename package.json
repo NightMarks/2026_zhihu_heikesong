@@ -5,7 +5,7 @@
   "type": "module",
   "main": "server/index.js",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "start": "node server/index.js",
@@ -13,8 +13,9 @@
     "test": "node --test"
   },
   "dependencies": {
-    "express": "^4.19.2",
     "cookie-parser": "^1.4.6",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^7.15.0"
   }
 }

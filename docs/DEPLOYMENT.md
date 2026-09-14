@@ -54,6 +54,9 @@ ZHIHU_ACCESS_SECRET=填写数据开放平台秘钥
 ZHIHU_APP_ID=504
 ZHIHU_APP_KEY=填写OAuth秘钥
 ZHIHU_REDIRECT_URI=https://212.129.255.239/auth/callback
+AI_API_KEY=填写大模型API秘钥
+AI_BASE_URL=https://api.openai-next.com/v1
+AI_MODEL=gpt-5.6-sol
 ```
 
 保护该文件：
@@ -153,6 +156,7 @@ https://212.129.255.239/api/capabilities
 - `/healthz` 返回 `{"ok":true}`。
 - `sourceType` 为 `api`。
 - `oauthReady` 为 `true`。
+- `aiReport` 为 `true`，`aiModel` 为 `gpt-5.6-sol`。
 - OAuth 登录后显示头像和用户中心。
 - 创作、关注列表和加载更多正常。
 

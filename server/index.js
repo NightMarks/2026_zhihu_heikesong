@@ -18,6 +18,12 @@ import { execFileSync } from 'node:child_process';
 import * as zh from './zhihu.js';
 import * as cli from './cli-source.js';
 import { beginOAuth, consumeOAuth } from './oauth-state.js';
+import {
+  ANALYSIS_ASPECTS,
+  createAnalysisClient,
+  normalizeAspects,
+  requestSandtrayAnalysis,
+} from './ai-analysis.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -31,6 +37,9 @@ const cfg = {
   appId:       process.env.ZHIHU_APP_ID || '',
   appKey:      process.env.ZHIHU_APP_KEY || '',
   redirectUri: process.env.ZHIHU_REDIRECT_URI || '',
+  aiApiKey:    process.env.AI_API_KEY || process.env.YOUR_API_KEY || '',
+  aiBaseUrl:   process.env.AI_BASE_URL || 'https://api.openai-next.com/v1',
+  aiModel:     process.env.AI_MODEL || 'gpt-5.6-sol',
 };
 
 // 读 .env（不引额外依赖，手写足够）
@@ -55,6 +64,10 @@ if (fs.existsSync(envPath)) {
   fill('PUBLIC_URL',           'publicUrl');
   fill('HOST',                 'host');
   fill('PORT',                'port');
+  fill('AI_API_KEY',          'aiApiKey');
+  if (!cfg.aiApiKey) fill('YOUR_API_KEY', 'aiApiKey');
+  fill('AI_BASE_URL',         'aiBaseUrl');
+  fill('AI_MODEL',            'aiModel');
 }
 
 if (!cfg.redirectUri) {
@@ -84,6 +97,10 @@ if (!cfg.appKey && process.platform === 'darwin') {
 }
 
 const app = express();
+const analysisClient = createAnalysisClient({
+  apiKey: cfg.aiApiKey,
+  baseURL: cfg.aiBaseUrl,
+});
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
@@ -163,6 +180,9 @@ app.get('/api/capabilities', (req, res) => {
     redirectUri:    cfg.redirectUri,   // 公开信息，便于用户核对开放平台登记值
     loggedIn:   !!s.user,
     user:       s.user || null,
+    aiReport:   !!analysisClient,
+    aiModel:    analysisClient ? cfg.aiModel : null,
+    analysisAspects: ANALYSIS_ASPECTS,
     // 平台能力边界 —— 前端据此渲染 UI，不做虚假承诺
     canRead:  ['zhihu_search', 'global_search', 'hot_list', 'zhida',
                'user_contents', 'user_collections', 'user_followees'],
@@ -382,33 +402,40 @@ app.post('/api/verify-contribution', needSource, async (req, res) => {
   }
 });
 
-/* ══════════════════ 直答生成沙盘报告 ══════════════════ */
-app.post('/api/report', needSource, async (req, res) => {
-  const { features } = req.body || {};
-  if (!features) return res.status(400).json({ error: '缺少沙盘结构特征' });
+/* ══════════════════ 大模型生成沙盘报告 ══════════════════ */
+app.post('/api/report', async (req, res) => {
+  const { features, aspects } = req.body || {};
+  if (typeof features !== 'string' || !features.trim()) {
+    return res.status(400).json({ error: '缺少沙盘结构特征' });
+  }
+  if (features.length > 8000) {
+    return res.status(413).json({ error: '沙盘结构数据过长' });
+  }
 
-  const prompt = `你是一位沙盘游戏（Sandplay）的陪伴者，不是诊断者。
-下面是一位来访者摆放的沙盘的客观结构数据：
+  if (!analysisClient) {
+    return res.json({ ok: false, error: '服务器尚未配置大模型 API Key', fallback: true });
+  }
 
-${features}
-
-请用温和、非评判的中文写一段解读，严格遵守：
-1. 只描述你从结构中"看到"的，不推断人格、疾病或心理问题
-2. 禁止出现任何诊断性词汇（抑郁、焦虑症、障碍、创伤等）
-3. 不要替对方赋予沙具含义，象征意义由他本人决定
-4. 分三段：整体氛围、结构观察、然后给出 3 个开放式问题
-5. 总长度 300 字以内，语气平静克制，像一个安静的陪伴者
-
-直接输出正文，不要标题和序号。`;
+  // 比赛 Demo 的轻量限流：控制公开接口的误触与 Key 消耗。
+  const s = session(req, res);
+  const now = Date.now();
+  s.aiReportRequests = (s.aiReportRequests || []).filter(time => now - time < 5 * 60_000);
+  if (s.aiReportRequests.length >= 4) {
+    return res.status(429).json({ error: '生成得有点频繁，请五分钟后再试' });
+  }
+  s.aiReportRequests.push(now);
 
   try {
-    const text = SOURCE === 'api'
-      ? await zh.zhida(cfg.secret, [{ role: 'user', content: prompt }])
-      : await cli.cliAnswer(prompt);
-    res.json({ ok: true, text, source: SOURCE === 'api' ? 'zhida' : 'zhida-cli' });
+    const result = await requestSandtrayAnalysis({
+      client: analysisClient,
+      model: cfg.aiModel,
+      features,
+      aspects: normalizeAspects(aspects),
+    });
+    res.json({ ok: true, ...result, source: 'llm' });
   } catch (e) {
-    // 直答不可用时告诉前端降级到本地规则引擎，不让页面白屏
-    res.json({ ok: false, error: e.message, fallback: true });
+    console.error('[ai-report]', e?.status || '', e?.message || e);
+    res.json({ ok: false, error: '大模型暂时未返回结果，请稍后重试', fallback: true });
   }
 });
 
@@ -459,5 +486,6 @@ app.listen(cfg.port, cfg.host, () => {
   console.log(`\n  沙游心语  →  ${displayUrl}\n`);
   console.log(`  内容数据源: ${srcLabel[SOURCE]}`);
   console.log(`  OAuth 登录 : ${cfg.appId && cfg.appKey ? '✓ 已配置' : '✗ 缺 app_id / app_key（登录按钮会提示）'}`);
+  console.log(`  AI 沙盘报告: ${analysisClient ? `✓ ${cfg.aiModel}` : '✗ 未配置 AI_API_KEY（使用本地规则）'}`);
   console.log(`  写入互动   : ✗ 平台不提供，由「跳转知乎 + 回链校验」实现\n`);
 });

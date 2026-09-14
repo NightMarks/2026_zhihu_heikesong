@@ -200,7 +200,7 @@ const ATMOS = {
 
 /* ========== 状态 ========== */
 const LS='shayu_v2';
-let CAP={contentApi:false,oauth:false,loggedIn:false,user:null};
+let CAP={contentApi:false,oauth:false,loggedIn:false,user:null,aiReport:false,aiModel:null};
 let POSTS={};              // catId -> 知乎内容数组（运行时从 API 拉取）
 let state=load();
 
@@ -311,6 +311,7 @@ function renderCapBar(){
     {on:CAP.contentApi, label:'知乎内容', v:srcLabel},
     // 凭证齐备但回调不可达时算"部分可用"，不标成绿色 on，避免虚假承诺
     {on:CAP.loggedIn||CAP.oauthReady||CAP.sourceType==='cli', label:'账号身份', v:idLabel},
+    {on:CAP.aiReport, label:'AI 解读', v:CAP.aiReport?(CAP.aiModel||'已配置'):'本地规则兜底'},
     {no:true, label:'站内写互动', v:'平台未开放 · 需在知乎完成'},
   ];
   $('#cap-bar').innerHTML=`<div class="cap-bar">${items.map(i=>
@@ -403,6 +404,7 @@ function switchView(name){
   $('#view-'+name).classList.add('active');
   if(name==='community')renderFeed();
   if(name==='tray'){renderLibrary();renderSandbox()}
+  if(name==='report') state.report?renderReport():(state.tray.length?renderReportSetup():renderReport());
 }
 
 /* ══════════════════ 随机沙具开场 ══════════════════ */
@@ -733,10 +735,61 @@ function clearTray(){
 }
 function goReport(){
   if(!state.tray.length){toast('沙盘还是空的，先摆放一些沙具');return}
-  switchView('report');generateReport();
+  switchView('report');renderReportSetup();
 }
 
 /* ══════════════════ 沙盘报告 ══════════════════ */
+const ANALYSIS_ASPECTS=[
+  {id:'narrative',icon:'📖',label:'整体主题与故事线',hint:'这幅沙盘像在讲述怎样的场景与进程'},
+  {id:'relationships',icon:'🫂',label:'角色关系与边界',hint:'人物、群体、距离、连接与保护'},
+  {id:'space',icon:'🧭',label:'空间布局与视觉重心',hint:'中心、四周、疏密、留白与方向'},
+  {id:'emotion',icon:'🌦️',label:'情绪氛围与张力',hint:'画面带来的感受与能量变化'},
+  {id:'resources',icon:'🪴',label:'支持资源与内在力量',hint:'庇护、伙伴、通路与可用的力量'},
+  {id:'change',icon:'🌉',label:'变化线索与下一幕',hint:'冲突、过渡，以及故事可能如何继续'},
+  {id:'reflection',icon:'💬',label:'开放式自我探索问题',hint:'把解释权交还给你的温和提问'},
+];
+const DEFAULT_ANALYSIS_ASPECTS=['narrative','space','reflection'];
+
+function renderReportSetup(){
+  if(!state.tray.length){renderReport();return}
+  const picked=state.report?.analysisFocus?.length?state.report.analysisFocus:DEFAULT_ANALYSIS_ASPECTS;
+  const a=analyzeTray();
+  $('#report-area').innerHTML=`
+    <div class="card report-wrap analysis-setup">
+      <div class="analysis-kicker">AI SANDBOX READING</div>
+      <h1>这一次，你想从哪里读起？</h1>
+      <p class="analysis-lead">同一座沙盘可以有很多入口。请选择 1—4 个方向，大模型只沿着你选择的线索观察，不替你下结论。</p>
+      <div class="analysis-scene-note">
+        <span>当前沙盘</span><b>${a.n} 件沙具</b><b>${a.counts.length} 个类别</b><b>中心区 ${a.center} 件</b>
+      </div>
+      <div class="analysis-options">
+        ${ANALYSIS_ASPECTS.map(item=>`<label class="analysis-option">
+          <input type="checkbox" value="${item.id}" ${picked.includes(item.id)?'checked':''} onchange="limitAnalysisFocus(this)">
+          <span class="analysis-mark">${item.icon}</span>
+          <span><b>${item.label}</b><small>${item.hint}</small></span>
+        </label>`).join('')}
+      </div>
+      <div class="analysis-privacy">沙盘结构会发送到服务器配置的大模型服务；不会发送知乎昵称、头像、关注列表或 OAuth 凭证。请以部署方公布的模型服务隐私规则为准。</div>
+      <div class="report-actions">
+        ${state.report?'<button class="btn btn-ghost" onclick="renderReport()">返回上一份报告</button>':''}
+        <button class="btn btn-primary analysis-submit" onclick="generateReport()">开始 AI 解读 <span>→</span></button>
+      </div>
+    </div>`;
+}
+
+function selectedAnalysisFocus(){
+  return [...$$('.analysis-option input:checked')].map(input=>input.value);
+}
+
+function limitAnalysisFocus(changed){
+  const selected=selectedAnalysisFocus();
+  if(selected.length>4){changed.checked=false;toast('最多选择 4 个分析方向')}
+}
+
+function regenerateReport(){
+  generateReport(state.report?.analysisFocus||DEFAULT_ANALYSIS_ASPECTS);
+}
+
 function analyzeTray(){
   const items=state.tray.map(it=>({...it,toy:toyOf(it.toyId),cat:catOf(it.toyId)}));
   const byCat={};items.forEach(i=>byCat[i.cat.id]=(byCat[i.cat.id]||0)+1);
@@ -847,23 +900,26 @@ function buildReport(){
 }
 
 let generating=false;
-async function generateReport(){
+async function generateReport(focusOverride){
   if(generating)return;generating=true;
+  const focus=Array.isArray(focusOverride)?focusOverride:selectedAnalysisFocus();
+  if(!focus.length){generating=false;toast('请至少选择一个分析方向');return}
   $('#report-area').innerHTML=`<div class="card report-wrap generating">
     <span class="spin">🔮</span>
-    <p style="margin-top:16px">正在观察你的沙盘：沙具类型与数量、摆放位置与密度、整体结构……</p></div>`;
+    <p style="margin-top:16px">正在沿着你选择的 ${focus.length} 条线索，阅读沙盘中的关系与故事……</p></div>`;
 
   const r=buildReport();
+  r.analysisFocus=focus;
 
-  // 尝试用知乎直答生成解读；失败则用本地规则引擎
-  if(CAP.contentApi){
+  // 尝试用独立大模型生成解读；失败则保留本地规则报告
+  if(CAP.aiReport){
     try{
       const res=await fetch('/api/report',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({features:r.features})
+        body:JSON.stringify({features:r.features,aspects:focus})
       });
       const d=await res.json();
-      if(d.ok&&d.text){r.aiText=d.text;r.source='zhida'}   // zhida / zhida-cli 统一标记
+      if(d.ok&&d.text){r.aiText=d.text;r.source='llm';r.model=d.model;r.analysisFocus=d.aspects||focus}
     }catch(e){/* 静默降级 */}
   }
 
@@ -878,9 +934,10 @@ function renderReport(){
       <button class="btn btn-primary" style="margin-top:18px" onclick="switchView('tray')">去布置沙盘</button></div>`;
     return;
   }
-  const badge=r.source==='zhida'
-    ?`<span class="ai-badge">知乎直答生成${CAP.sourceType==='cli'?'（本机凭证）':''}</span>`
+  const badge=r.source==='llm'
+    ?`<span class="ai-badge">AI · ${escapeHtml(r.model||CAP.aiModel||'大模型')}</span>`
     :'<span class="ai-badge local">本地规则引擎</span>';
+  const focusLabels=(r.analysisFocus||[]).map(id=>ANALYSIS_ASPECTS.find(item=>item.id===id)?.label).filter(Boolean);
 
   $('#report-area').innerHTML=`
   <div class="card report-wrap report-card">
@@ -892,8 +949,10 @@ function renderReport(){
       <div class="stat-chip"><b>${r.stats.density}</b><span>布局密度</span></div>
     </div>
 
-    ${r.aiText?`<div class="report-block"><h2>🪶 AI 解读</h2>
-      <p>${escapeHtml(r.aiText).replace(/\n/g,'<br>')}</p></div>`:''}
+    ${focusLabels.length?`<div class="report-focus"><span>本次阅读方向</span>${focusLabels.map(label=>`<b>${escapeHtml(label)}</b>`).join('')}</div>`:''}
+
+    ${r.aiText?`<div class="report-block ai-reading"><h2>🪶 AI 深度解读</h2>
+      <div class="ai-report-text">${escapeHtml(r.aiText)}</div></div>`:''}
 
     <div class="report-block"><h2>🧭 主题线索</h2><p>${escapeHtml(r.themeText)}</p></div>
     <div class="report-block"><h2>🪞 沙具与位置</h2>
@@ -910,7 +969,8 @@ function renderReport(){
       若有持续的情绪困扰，请联系心理咨询师或拨打心理援助热线。
     </div>
     <div class="report-actions" style="margin-top:22px">
-      <button class="btn btn-ghost" onclick="generateReport()">🔄 重新解读</button>
+      <button class="btn btn-ghost" onclick="renderReportSetup()">🎛️ 调整分析方向</button>
+      <button class="btn btn-ghost" onclick="regenerateReport()">🔄 按当前方向重读</button>
       <button class="btn btn-warm" onclick="openPublish()">📤 发布到社群</button>
     </div>
   </div>`;
