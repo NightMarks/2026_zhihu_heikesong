@@ -21,6 +21,12 @@ test('analysis prompt includes all psychological dimensions and non-diagnostic g
   assert.match(messages[0].content, /整体主题与心理动力/);
   assert.match(messages[0].content, /空间布局与心理联想/);
   assert.match(messages[0].content, /无法观察制作过程/);
+  assert.match(messages[0].content, /整体主题判断/);
+  assert.match(messages[0].content, /沙子与水的使用/);
+  assert.match(messages[0].content, /沙盘制作过程/);
+  assert.match(messages[0].content, /证据.*可能性.*确认/);
+  assert.match(messages[0].content, /不得用含糊的安慰替代分析/);
+  assert.match(messages[0].content, /来访者自述优先/);
   assert.match(messages[1].content, /桥、孩子、树/);
 });
 

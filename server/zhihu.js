@@ -157,11 +157,13 @@ export async function oauthUserInfo(oauthToken) {
   };
 
   return {
-    nick:     pick('name', 'Name', 'fullname', 'Fullname', 'nickname', 'NickName'),
-    avatar:   pick('avatar_url', 'AvatarUrl', 'avatar', 'Avatar', 'headimg_url', 'HeadImgUrl'),
-    urlToken: pick('url_token', 'UrlToken', 'id', 'Id'),
+    nick:     pick('fullname', 'name', 'Name', 'Fullname', 'nickname', 'NickName'),
+    avatar:   pick('avatar_path', 'avatar_url', 'AvatarUrl', 'avatar', 'Avatar', 'headimg_url', 'HeadImgUrl'),
+    // 官方推荐使用 hash_id。uid 是 int64，直接转成 JS Number 可能损失精度。
+    urlToken: pick('hash_id', 'url_token', 'UrlToken', 'id', 'Id'),
     url:      pick('url', 'Url'),
     headline: pick('headline', 'Headline'),
+    description: pick('description', 'Description'),
   };
 }
 

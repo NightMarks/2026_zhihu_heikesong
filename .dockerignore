@@ -6,6 +6,7 @@ npm-debug.log*
 .playwright-mcp
 .worktrees
 docs
+images
 tests
 coverage
 data/*.json

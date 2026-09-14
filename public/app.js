@@ -182,30 +182,30 @@ const CATEGORIES = [
 
 /* 用户提供的实体沙具素材；emoji 只保留为图片加载失败时的文字语义。 */
 const TOY_IMAGES={
-  child:'/images/human/c2ce9c9043aa34923de4aae306af4a9b.jpg',student:'/images/human/4ed59ecd8d0985ed1e92d233d0a64a51.jpg',
-  worker:'/images/human/a8883bc92c6a5ea1fe565a64be744a24.jpg',doctor:'/images/human/02e0dcad2ca3696e4b98c8d8952020f8.jpg',
-  police:'/images/human/d1d3e66c2b9ed8caa805f5d7c7f5e768.jpg',elder:'/images/human/227d793dfe8a7dbf81141378725f7929.jpg',
-  mystery:'/images/human/31188389f933efb9649502f437b3807f.jpg',cat:'/images/animals/c6b8b59a57f5bf254c4f566befd54dc4.jpg',
-  dog:'/images/animals/80abfc4ab325cbe0e36e402b5d75bed4.jpg',bird:'/images/animals/9ce5f4dd8b36c54b9cea4719c95b33bf.jpg',
-  fish:'/images/animals/4c6c5a9d546332349976c2f68f80782f.png',horse:'/images/animals/51c2103c2d602144e2bf8d9d6852a9a5.jpg',
-  turtle:'/images/animals/f2cee562912600c9feaabd41f88f7840.jpg',butterfly:'/images/animals/e7ad2e21f2ad7f56525b6269f23e0c5b.jpg',
-  thatch:'/images/buildings/858a519cdffdb913bd2cb4dc85726539.jpg',stone:'/images/buildings/b922360754097bba52c523ecb8a54229.jpg',
-  cabin:'/images/buildings/04379daf871f13a84e249e66453f01ea.jpg',flat:'/images/buildings/f17fcf4b8049920245ddf14d5af1c091.jpg',
-  tower:'/images/buildings/0fd9757ca3b0013e56bf78c5b4a5a02b.png',ruin:'/images/buildings/91252af5667e803307304308cf85aab3.jpg',
-  castle:'/images/buildings/534cc6aa6fa5e687b65926cbcaa4c842.jpg',tree:'/images/nature/e8efc7b750b6609f1727efdd3be9cab9.jpg',
-  flower:'/images/nature/dc7bf3689f32daf5b4ad6b01be4bfcda.jpg',mountain:'/images/nature/61661e4c63c5e19fda84ddcac7f37239.jpg',
-  water:'/images/nature/570b3ae13416b5d709717ef245bf7e9e.jpg',sun:'/images/nature/ba07e23bc19003963020d22cbee9fd30.jpg',
-  moon:'/images/nature/0976c1b9632cdae4467cac5648e273e6.jpg',rock:'/images/nature/973bd06e24a808bfe23ebd02a5a193a3.jpg',
-  bike:'/images/transport/9ab477d608d85fb573bc38a9baeccb1b.jpg',car:'/images/transport/978a465d4b3f872b57f93d5d558c96aa.jpg',
-  train:'/images/transport/dc873b8d457c8ae3146bcadea7678d93.jpg',boat:'/images/transport/844cc9e71bd3ff88d463b57f9fc151ef.jpg',
-  plane:'/images/transport/f0f9afa0cb8b6e084b110987018ca546.jpg',key:'/images/Symbol/8e081d0dffecc9d9535748dffdece301.jpg',
-  door:'/images/buildings/3666164c83f0a7da41c6adee494974ed.jpg',bridge:'/images/buildings/fa78593fd9ac71f57c2825f8c7adf2ab.jpg',
-  mirror:'/images/Symbol/1912ba306bc34b519256d2d845371d30.jpg',fairy:'/images/fantasy/936c50f5a292fa869d0ed0653f244901.jpg',
-  unicorn:'/images/fantasy/05aed826ad5f5f8a446d3f0ea27e0d34.jpg',wizard:'/images/fantasy/c75a0e06803548c9c57a9242311be90f.jpg',
-  crystal:'/images/fantasy/b688a3ccfb056574cc2fc0d5388fef35.jpg',star:'/images/fantasy/c34c3daab90de619711af1ce886d5359.png',
-  rainbow:'/images/fantasy/954db4511233bb8f3a51c5532601f673.jpg',sword:'/images/attackandmonster/94d8c2876ccb653f144ce85abaec2bac.jpg',
-  shield:'/images/attackandmonster/265f9e67af041da6ccf0e4ebd1549e6c.jpg',dragon:'/images/fantasy/d5f55647155cbe808e6bcf2dda0dfa51.jpg',
-  beast:'/images/attackandmonster/bdee96bae33e8fa4730e4d3e99005b20.jpg',
+  child:'/images/human/c2ce9c9043aa34923de4aae306af4a9b.webp',student:'/images/human/4ed59ecd8d0985ed1e92d233d0a64a51.webp',
+  worker:'/images/human/a8883bc92c6a5ea1fe565a64be744a24.webp',doctor:'/images/human/02e0dcad2ca3696e4b98c8d8952020f8.webp',
+  police:'/images/human/d1d3e66c2b9ed8caa805f5d7c7f5e768.webp',elder:'/images/human/227d793dfe8a7dbf81141378725f7929.webp',
+  mystery:'/images/human/31188389f933efb9649502f437b3807f.webp',cat:'/images/animals/c6b8b59a57f5bf254c4f566befd54dc4.webp',
+  dog:'/images/animals/80abfc4ab325cbe0e36e402b5d75bed4.webp',bird:'/images/animals/9ce5f4dd8b36c54b9cea4719c95b33bf.webp',
+  fish:'/images/animals/4c6c5a9d546332349976c2f68f80782f.webp',horse:'/images/animals/51c2103c2d602144e2bf8d9d6852a9a5.webp',
+  turtle:'/images/animals/f2cee562912600c9feaabd41f88f7840.webp',butterfly:'/images/animals/e7ad2e21f2ad7f56525b6269f23e0c5b.webp',
+  thatch:'/images/buildings/858a519cdffdb913bd2cb4dc85726539.webp',stone:'/images/buildings/b922360754097bba52c523ecb8a54229.webp',
+  cabin:'/images/buildings/04379daf871f13a84e249e66453f01ea.webp',flat:'/images/buildings/f17fcf4b8049920245ddf14d5af1c091.webp',
+  tower:'/images/buildings/0fd9757ca3b0013e56bf78c5b4a5a02b.webp',ruin:'/images/buildings/91252af5667e803307304308cf85aab3.webp',
+  castle:'/images/buildings/534cc6aa6fa5e687b65926cbcaa4c842.webp',tree:'/images/nature/e8efc7b750b6609f1727efdd3be9cab9.webp',
+  flower:'/images/nature/dc7bf3689f32daf5b4ad6b01be4bfcda.webp',mountain:'/images/nature/61661e4c63c5e19fda84ddcac7f37239.webp',
+  water:'/images/nature/570b3ae13416b5d709717ef245bf7e9e.webp',sun:'/images/nature/ba07e23bc19003963020d22cbee9fd30.webp',
+  moon:'/images/nature/0976c1b9632cdae4467cac5648e273e6.webp',rock:'/images/nature/973bd06e24a808bfe23ebd02a5a193a3.webp',
+  bike:'/images/transport/9ab477d608d85fb573bc38a9baeccb1b.webp',car:'/images/transport/978a465d4b3f872b57f93d5d558c96aa.webp',
+  train:'/images/transport/dc873b8d457c8ae3146bcadea7678d93.webp',boat:'/images/transport/844cc9e71bd3ff88d463b57f9fc151ef.webp',
+  plane:'/images/transport/f0f9afa0cb8b6e084b110987018ca546.webp',key:'/images/Symbol/8e081d0dffecc9d9535748dffdece301.webp',
+  door:'/images/buildings/3666164c83f0a7da41c6adee494974ed.webp',bridge:'/images/buildings/fa78593fd9ac71f57c2825f8c7adf2ab.webp',
+  mirror:'/images/Symbol/1912ba306bc34b519256d2d845371d30.webp',fairy:'/images/fantasy/936c50f5a292fa869d0ed0653f244901.webp',
+  unicorn:'/images/fantasy/05aed826ad5f5f8a446d3f0ea27e0d34.webp',wizard:'/images/fantasy/c75a0e06803548c9c57a9242311be90f.webp',
+  crystal:'/images/fantasy/b688a3ccfb056574cc2fc0d5388fef35.webp',star:'/images/fantasy/c34c3daab90de619711af1ce886d5359.webp',
+  rainbow:'/images/fantasy/954db4511233bb8f3a51c5532601f673.webp',sword:'/images/attackandmonster/94d8c2876ccb653f144ce85abaec2bac.webp',
+  shield:'/images/attackandmonster/265f9e67af041da6ccf0e4ebd1549e6c.webp',dragon:'/images/fantasy/d5f55647155cbe808e6bcf2dda0dfa51.webp',
+  beast:'/images/attackandmonster/bdee96bae33e8fa4730e4d3e99005b20.webp',
 };
 CATEGORIES.forEach(category=>category.toys.forEach(toy=>{toy.image=TOY_IMAGES[toy.id]}));
 
@@ -243,6 +243,15 @@ function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');cl
 function closeModal(id){$('#'+id).classList.remove('open')}
 function fmtTime(ts){const d=Date.now()-ts;if(d<60e3)return'刚刚';if(d<3600e3)return Math.floor(d/60e3)+' 分钟前';if(d<86400e3)return Math.floor(d/3600e3)+' 小时前';return Math.floor(d/86400e3)+' 天前'}
 function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function formatAiReport(text){
+  return String(text||'').split(/\r?\n/).map(line=>{
+    const heading=line.match(/^##\s+(.*)$/);
+    if(heading)return `<h3>${escapeHtml(heading[1])}</h3>`;
+    const bullet=line.match(/^[-*]\s+(.*)$/);
+    if(bullet)return `<p class="ai-report-bullet">${escapeHtml(bullet[1])}</p>`;
+    return line.trim()?`<p>${escapeHtml(line)}</p>`:'';
+  }).join('');
+}
 function toyAssetHTML(toy,className='toy-asset'){
   return `<img class="${className}" src="${toy.image}" alt="${escapeHtml(toy.name)}" loading="lazy" draggable="false">`;
 }
@@ -297,7 +306,7 @@ function updateJourneyGate(){
     note.textContent=`已登录为 ${CAP.user?.nick||'知乎用户'}，可以开始探索。`;
   }else if(CAP.oauthReady){
     button.textContent='登录知乎并开始旅程 →';
-    note.textContent='需要先完成知乎 OAuth 登录，登录后会自动回到这里。';
+    note.textContent='需要先完成知乎 OAuth 登录。若知乎提示网络环境异常，请关闭代理并先在同一浏览器登录知乎。';
   }else{
     button.textContent='当前环境暂时无法登录';
     button.disabled=true;
@@ -694,11 +703,20 @@ function refreshTop(){$('#insp-total').textContent=inspTotal()}
 let selectedLib=null,selectedPlaced=-1;
 let undoStack=[],redoStack=[];
 const traySnapshot=()=>JSON.parse(JSON.stringify(state.tray));
-function commitTray(previous){
+function recordTrayAction(action){
+  const process=state.trayProcess||(state.trayProcess={startedAt:null,lastEditedAt:null,editCount:0,actions:{},nextOrder:1});
+  const now=Date.now();
+  process.startedAt ||= now;
+  process.lastEditedAt=now;
+  process.editCount=(process.editCount||0)+1;
+  process.actions[action]=(process.actions[action]||0)+1;
+}
+function commitTray(previous,action='adjust'){
   if(JSON.stringify(previous)===JSON.stringify(state.tray))return;
   undoStack.push(previous);if(undoStack.length>50)undoStack.shift();
-  redoStack=[];state.report=null;save();renderSandbox();
+  redoStack=[];state.report=null;recordTrayAction(action);save();renderSandbox();
 }
+function updateTrayStory(value){state.trayStory=String(value||'').slice(0,500);state.report=null;save()}
 function updateHistoryButtons(){
   if($('#undo-btn'))$('#undo-btn').disabled=!undoStack.length;
   if($('#redo-btn'))$('#redo-btn').disabled=!redoStack.length;
@@ -749,8 +767,9 @@ function renderSandbox(){
 function placeToyAt(toyId,x,y){
   if(!toyOf(toyId))return;
   const previous=traySnapshot();
-  state.tray.push({toyId,x:Math.min(96,Math.max(4,x)),y:Math.min(94,Math.max(6,y)),rotation:0,scale:1});
-  selectedPlaced=state.tray.length-1;selectedLib=toyId;commitTray(previous);
+  const process=state.trayProcess||(state.trayProcess={startedAt:null,lastEditedAt:null,editCount:0,actions:{},nextOrder:1});
+  state.tray.push({toyId,x:Math.min(96,Math.max(4,x)),y:Math.min(94,Math.max(6,y)),rotation:0,scale:1,placedAt:Date.now(),placedOrder:process.nextOrder++});
+  selectedPlaced=state.tray.length-1;selectedLib=toyId;commitTray(previous,'place');
 }
 $('#sandbox').addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';$('#sandbox').classList.add('drop-ready')});
 $('#sandbox').addEventListener('dragleave',e=>{if(!$('#sandbox').contains(e.relatedTarget))$('#sandbox').classList.remove('drop-ready')});
@@ -781,7 +800,7 @@ function startDrag(e,i){
     state.tray[i].y=Math.min(94,Math.max(6,y));
     el.style.left=state.tray[i].x+'%';el.style.top=state.tray[i].y+'%';
   };
-  const up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);commitTray(previous)};
+  const up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);commitTray(previous,'move')};
   window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);
 }
 document.addEventListener('keydown',e=>{
@@ -791,32 +810,32 @@ document.addEventListener('keydown',e=>{
 });
 function removeSelected(){
   if(selectedPlaced<0){toast('先点击选中沙盘上的一件沙具');return}
-  const previous=traySnapshot();state.tray.splice(selectedPlaced,1);selectedPlaced=-1;commitTray(previous);
+  const previous=traySnapshot();state.tray.splice(selectedPlaced,1);selectedPlaced=-1;commitTray(previous,'remove');
 }
 function clearTray(){
   if(!state.tray.length)return;
-  const previous=traySnapshot();state.tray=[];selectedPlaced=-1;commitTray(previous);toast('沙盘已清空');
+  const previous=traySnapshot();state.tray=[];selectedPlaced=-1;commitTray(previous,'clear');toast('沙盘已清空');
 }
 function undoTray(){
   if(!undoStack.length)return;
-  redoStack.push(traySnapshot());state.tray=undoStack.pop();selectedPlaced=-1;state.report=null;save();renderSandbox();
+  redoStack.push(traySnapshot());state.tray=undoStack.pop();selectedPlaced=-1;state.report=null;recordTrayAction('undo');save();renderSandbox();
 }
 function redoTray(){
   if(!redoStack.length)return;
-  undoStack.push(traySnapshot());state.tray=redoStack.pop();selectedPlaced=-1;state.report=null;save();renderSandbox();
+  undoStack.push(traySnapshot());state.tray=redoStack.pop();selectedPlaced=-1;state.report=null;recordTrayAction('redo');save();renderSandbox();
 }
 function rotateSelected(delta){
   if(selectedPlaced<0)return toast('先选中一件沙具');
   const previous=traySnapshot();
   state.tray[selectedPlaced].rotation=((Number(state.tray[selectedPlaced].rotation)||0)+delta)%360;
-  commitTray(previous);
+  commitTray(previous,'rotate');
 }
 function scaleSelected(delta){
   if(selectedPlaced<0)return toast('先选中一件沙具');
   const previous=traySnapshot();
   const current=Number(state.tray[selectedPlaced].scale)||1;
   state.tray[selectedPlaced].scale=Math.min(2,Math.max(.5,+(current+delta).toFixed(1)));
-  commitTray(previous);
+  commitTray(previous,'scale');
 }
 function layerSelected(direction){
   if(selectedPlaced<0)return toast('先选中一件沙具');
@@ -824,7 +843,7 @@ function layerSelected(direction){
   if(target===selectedPlaced)return;
   const previous=traySnapshot();
   const [item]=state.tray.splice(selectedPlaced,1);state.tray.splice(target,0,item);selectedPlaced=target;
-  commitTray(previous);
+  commitTray(previous,'layer');
 }
 function loadAsset(src){
   return new Promise(resolve=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>resolve(null);image.src=src});
@@ -903,7 +922,15 @@ function featuresText(a){
   const catName=id=>CATEGORIES.find(c=>c.id===id).name;
   const placed=a.items.slice(0,40).map((i,index)=>`${index+1}.${i.toy.name}：横向${i.x}%、纵向${i.y}%、缩放${Number(i.scale)||1}倍`).join('；');
   const meanings=[...new Map(a.items.map(i=>[i.toyId,`${i.toy.name}：${i.toy.meaning}`])).values()].slice(0,24).join('；');
+  const ordered=a.items.filter(i=>i.placedOrder).sort((x,y)=>x.placedOrder-y.placedOrder);
+  const process=state.trayProcess||{};
+  const processMinutes=process.startedAt&&process.lastEditedAt?Math.max(1,Math.round((process.lastEditedAt-process.startedAt)/60000)):null;
+  const actionLabels={place:'放入',move:'移动',remove:'移除',clear:'清空',undo:'撤销',redo:'重做',rotate:'旋转',scale:'缩放',layer:'调整图层',adjust:'调整'};
+  const actionText=Object.entries(process.actions||{}).map(([key,value])=>`${actionLabels[key]||key}${value}次`).join('、');
+  const edge=a.items.filter(i=>i.x<=10||i.x>=90||i.y<=10||i.y>=90);
+  const large=a.items.filter(i=>(Number(i.scale)||1)>=1.4),small=a.items.filter(i=>(Number(i.scale)||1)<=.7);
   return [
+    `用户自述（最高优先级）：${state.trayStory?.trim()||'未填写；不要替用户虚构作品含义'}`,
     `沙具总数：${a.n} 件`,
     `类别构成：${a.counts.map(([k,v])=>catName(k)+' '+v+'件').join('、')}`,
     `使用的沙具：${a.items.map(i=>i.toy.name).join('、')}`,
@@ -912,9 +939,13 @@ function featuresText(a){
     `平均最近邻距离：${a.avgNN.toFixed(1)}（小于13很紧密，大于26较疏离）`,
     `铺开程度：${(a.spread*100).toFixed(0)}%`,
     a.lonely.length?`明显孤立的沙具：${a.lonely.map(i=>i.toy.name).join('、')}`:'没有明显孤立的沙具',
+    `边界接触：${edge.length?edge.map(i=>i.toy.name).join('、'):'无明显贴近边框的沙具'}`,
+    `相对大小：放大突出的沙具为${large.length?large.map(i=>i.toy.name).join('、'):'无'}；缩小的沙具为${small.length?small.map(i=>i.toy.name).join('、'):'无'}`,
     `逐件位置（数组顺序仅代表当前图层，不等同于摆放顺序）：${placed}`,
+    ordered.length?`可记录的摆放顺序：${ordered.map(i=>`${i.placedOrder}.${i.toy.name}`).join(' → ')}`:'摆放顺序：旧存档未记录',
+    actionText?`制作过程：约${processMinutes||1}分钟，共编辑${process.editCount||0}次；${actionText}`:'制作过程：没有可用操作记录',
     `传统象征联想（只能作为提问线索，用户自己的解释优先）：${meanings}`,
-    '可观察范围限制：系统只记录最终画面，无法观察挑选时的犹豫、摆放顺序、过程中的情绪，也没有记录挖沙、掩埋、抹平或加水行为。',
+    '可观察范围限制：系统无法观察挑选时的犹豫、过程中的非语言情绪，也没有记录挖沙、掩埋、抹平或真实加水行为；“水”沙具不等于加水。',
   ].join('\n');
 }
 
@@ -997,8 +1028,8 @@ async function generateReport(){
   if(generating)return;generating=true;
   const focus=[...DEFAULT_ANALYSIS_ASPECTS];
   $('#report-area').innerHTML=`<div class="card report-wrap generating">
-    <span class="ouroboros-loader"><img src="/images/animals/168ad7adfda79d9bf130fcb38f5edc49.jpg" alt="衔尾蛇正在转动"></span>
-    <p style="margin-top:16px">正在从整体主题、空间、关系、情绪、资源与变化等方面阅读你的沙盘……</p></div>`;
+    <span class="liukanshan-loader"><span class="loader-halo"></span><img src="/images/liukanshan-thinking.png" alt="刘看山正在等待分析结果"></span>
+    <p style="margin-top:16px">刘看山正在从整体主题、空间、关系、制作过程与内在资源等方面阅读你的沙盘……</p></div>`;
 
   const r=buildReport();
   r.analysisFocus=focus;
@@ -1042,10 +1073,10 @@ function renderReport(){
       <div class="stat-chip"><b>${r.stats.density}</b><span>布局密度</span></div>
     </div>
 
-    ${focusLabels.length?`<div class="report-focus"><span>本次阅读方向</span>${focusLabels.map(label=>`<b>${escapeHtml(label)}</b>`).join('')}</div>`:''}
+    ${focusLabels.length?`<div class="report-focus"><span>完整报告已覆盖</span>${focusLabels.map(label=>`<b>${escapeHtml(label)}</b>`).join('')}</div>`:''}
 
     ${r.aiText?`<div class="report-block ai-reading"><h2>🪶 AI 深度解读</h2>
-      <div class="ai-report-text">${escapeHtml(r.aiText)}</div></div>`:''}
+      <div class="ai-report-text">${formatAiReport(r.aiText)}</div></div>`:''}
 
     <div class="report-block"><h2>🧭 主题线索</h2><p>${escapeHtml(r.themeText)}</p></div>
     <div class="report-block"><h2>🪞 沙具与位置</h2>
@@ -1110,6 +1141,7 @@ async function enterGame(){
   renderCatTabs();
   renderLibrary();
   renderSandbox();
+  $('#tray-story').value=state.trayStory||'';
   renderReport();
   await probeCapabilities();
 

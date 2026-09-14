@@ -7,6 +7,8 @@
       insp: Object.fromEntries(categories.map(category => [category.id, 0])),
       unlocked: {},
       tray: [],
+      trayStory: '',
+      trayProcess: { startedAt: null, lastEditedAt: null, editCount: 0, actions: {}, nextOrder: 1 },
       read: {},
       verified: {},
       posts: [],
@@ -25,6 +27,10 @@
         }
         saved.posts = Array.isArray(saved.posts) ? saved.posts : [];
         saved.communityMigrated ||= {};
+        saved.trayStory = typeof saved.trayStory === 'string' ? saved.trayStory : '';
+        saved.trayProcess ||= { startedAt: null, lastEditedAt: null, editCount: 0, actions: {}, nextOrder: 1 };
+        saved.trayProcess.actions ||= {};
+        saved.trayProcess.nextOrder ||= 1;
         return saved;
       }
     } catch { /* 损坏的浏览器存档会回退到新游戏 */ }

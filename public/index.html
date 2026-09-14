@@ -59,6 +59,10 @@
         <div class="lib-grid" id="lib-grid"></div>
       </aside>
       <div class="sandbox-wrap">
+        <label class="tray-story card" for="tray-story">
+          <span>这幅沙盘对你意味着什么？</span>
+          <textarea id="tray-story" maxlength="500" placeholder="可选。写下一句话、一个标题或摆放时的感受；你的解释会优先于通用象征。" oninput="updateTrayStory(this.value)"></textarea>
+        </label>
         <div class="sandbox-toolbar">
           <button class="btn btn-ghost btn-sm" id="undo-btn" onclick="undoTray()">↶ 撤销</button>
           <button class="btn btn-ghost btn-sm" id="redo-btn" onclick="redoTray()">↷ 重做</button>

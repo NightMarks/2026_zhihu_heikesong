@@ -206,10 +206,12 @@ app.get('/api/capabilities', (req, res) => {
       avatar: s.user.avatar,
       url: s.user.url,
       headline: s.user.headline,
+      description: s.user.description,
     } : null,
     aiReport:   !!analysisClient,
     aiModel:    analysisClient ? cfg.aiModel : null,
     analysisAspects: ANALYSIS_ASPECTS,
+    oauthLastError: s.oauthLastError || null,
     communityOnline: true,
     // 平台能力边界 —— 前端据此渲染 UI，不做虚假承诺
     canRead:  ['zhihu_search', 'global_search', 'hot_list', 'zhida',
@@ -251,13 +253,24 @@ app.get('/auth/login', (req, res) => {
 
 app.get('/auth/callback', async (req, res) => {
   const s = session(req, res);
+  if (typeof req.query.error === 'string') {
+    const detail = typeof req.query.error_description === 'string'
+      ? req.query.error_description.slice(0, 300)
+      : '用户取消授权，或知乎没有批准本次授权请求。';
+    s.oauthLastError = { stage: 'authorize', message: detail, at: Date.now() };
+    return res.status(400).send(errPage('知乎授权未完成', escapeAttr(detail)));
+  }
   // 实测回调参数名为 authorization_code，同时兼容 code
   const code = req.query.authorization_code || req.query.code;
-  if (!code) return res.status(400).send(errPage('授权失败', '回调没有带回授权码。'));
+  if (!code) {
+    s.oauthLastError = { stage: 'callback', message: '回调没有带回授权码', at: Date.now() };
+    return res.status(400).send(errPage('授权失败', '回调没有带回授权码。请确认已在知乎完成登录与安全验证。'));
+  }
 
   try {
     consumeOAuth(s, typeof req.query.state === 'string' ? req.query.state : '');
   } catch (error) {
+    s.oauthLastError = { stage: 'state', message: error.message, at: Date.now() };
     return res.status(400).send(errPage(
       '授权校验失败',
       `${escapeAttr(error.message)}。请回到首页重新点击「用知乎登录」。`,
@@ -292,13 +305,17 @@ app.get('/auth/callback', async (req, res) => {
       avatar:   profile?.avatar || null,     // 取不到就是 null，前端显示文字头像，不造假
       url:      profile?.url || null,
       headline: profile?.headline || null,
+      description: profile?.description || null,
       loginAt:  Date.now(),
     };
+    delete s.oauthLastError;
     const returnTo = s.oauthReturnTo || '/';
     delete s.oauthReturnTo;
     const separator = returnTo.includes('?') ? '&' : '?';
     res.redirect(`${returnTo}${separator}login=ok`);
   } catch (e) {
+    s.oauthLastError = { stage: 'token', message: String(e?.message || e).slice(0, 300), at: Date.now() };
+    console.error('[oauth:token]', e?.message || e);
     res.status(502).send(errPage('换取 token 失败', escapeAttr(e.message)));
   }
 });
