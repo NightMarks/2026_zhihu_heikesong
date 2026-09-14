@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env*
+node_modules
+npm-debug.log*
+.playwright-mcp
+.worktrees
+docs
+tests
+coverage

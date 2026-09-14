@@ -72,7 +72,10 @@ Node.js + Express（内容代理、OAuth、验证、AI 报告）
 │  ├─ zhihu.js         知乎开放平台 API 客户端
 │  ├─ cli-source.js    跨平台本地 zhihu-cli 数据源
 │  └─ oauth-state.js   OAuth state 生成与一次性校验
-├─ docs/               后续开发计划
+├─ docs/               后续开发计划和服务器部署指南
+├─ Dockerfile          容器化部署入口
+├─ render.yaml         Render Blueprint 配置
+├─ .dockerignore       Docker 构建忽略规则
 ├─ .env.example        环境变量模板
 ├─ .gitignore          Git 忽略规则
 ├─ package.json        项目命令和直接依赖
@@ -84,7 +87,7 @@ Node.js + Express（内容代理、OAuth、验证、AI 报告）
 
 ## 环境要求
 
-- Node.js 18 或更高版本，推荐当前 LTS
+- Node.js 20 或更高版本，推荐当前 LTS
 - npm
 - Chrome、Edge 或其他现代浏览器
 
@@ -195,6 +198,16 @@ PORT=3000
 
 真实 OAuth 登录需要先将站点部署到公网 HTTPS，并在知乎开放平台登记完全一致的回调地址。`http://127.0.0.1:3000/auth/callback` 只是服务端本地默认值，当前代码会判定它不能用于真实 OAuth。
 
+## 服务器部署
+
+项目支持 Docker 部署。使用自有域名最稳定；比赛 Demo 也可以为公网 IP 申请短期 HTTPS 证书，或者使用免费固定隧道地址。
+
+针对当前 TencentOS Server 4 和公网 IP 的完整步骤见 [腾讯云无域名部署指南](docs/DEPLOYMENT.md)。部署完成后重点检查：
+
+- `GET /healthz` 返回 `{"ok":true}`；
+- `GET /api/capabilities` 中 `sourceType` 为 `api`；
+- 知乎后台登记的 OAuth 回调与线上 `/auth/callback` 完全一致。
+
 ### zhihu-cli 说明
 
 服务端通过 `process.platform` 选择运行方式：Windows 直接执行 `zhihu-cli.exe`；macOS/Linux 直接执行二进制，只有显式配置的 `.sh` 包装脚本才经 `bash`。查找顺序为：
@@ -210,6 +223,7 @@ PORT=3000
 
 | 方法 | 路径 | 功能 |
 |---|---|---|
+| GET | `/healthz` | 部署平台健康检查 |
 | GET | `/api/capabilities` | 查询数据源、OAuth 和登录状态 |
 | GET | `/api/search` | 搜索知乎内容 |
 | GET | `/api/hot` | 获取知乎热榜 |

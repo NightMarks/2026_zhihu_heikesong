@@ -25,10 +25,12 @@ const ROOT = path.join(__dirname, '..');
 // ── 配置 ──
 const cfg = {
   port:        process.env.PORT || 3000,
+  host:        process.env.HOST || '0.0.0.0',
+  publicUrl:   process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || '',
   secret:      process.env.ZHIHU_ACCESS_SECRET || '',
   appId:       process.env.ZHIHU_APP_ID || '',
   appKey:      process.env.ZHIHU_APP_KEY || '',
-  redirectUri: process.env.ZHIHU_REDIRECT_URI || `http://127.0.0.1:${process.env.PORT || 3000}/auth/callback`,
+  redirectUri: process.env.ZHIHU_REDIRECT_URI || '',
 };
 
 // 读 .env（不引额外依赖，手写足够）
@@ -50,9 +52,16 @@ if (fs.existsSync(envPath)) {
   fill('ZHIHU_APP_ID',        'appId');
   fill('ZHIHU_APP_KEY',       'appKey');
   fill('ZHIHU_REDIRECT_URI',  'redirectUri');
+  fill('PUBLIC_URL',           'publicUrl');
+  fill('HOST',                 'host');
   fill('PORT',                'port');
-  // redirect_uri 未显式配置时，跟随最终生效的端口
-  if (!process.env.ZHIHU_REDIRECT_URI && !fileEnv.ZHIHU_REDIRECT_URI) {
+}
+
+if (!cfg.redirectUri) {
+  if (cfg.publicUrl) {
+    const origin = cfg.publicUrl.replace(/\/$/, '');
+    cfg.redirectUri = `${origin}/auth/callback`;
+  } else {
     cfg.redirectUri = `http://127.0.0.1:${cfg.port}/auth/callback`;
   }
 }
@@ -75,8 +84,20 @@ if (!cfg.appKey && process.platform === 'darwin') {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
+app.use((req, res, next) => {
+  res.set({
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'SAMEORIGIN',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  });
+  next();
+});
+
+app.get('/healthz', (req, res) => res.json({ ok: true }));
 
 // ── 会话（内存版，生产应换 Redis） ──
 const sessions = new Map();
@@ -432,9 +453,10 @@ function errPage(title, msg) {
 }
 
 await detectSource();
-app.listen(cfg.port, '127.0.0.1', () => {
+app.listen(cfg.port, cfg.host, () => {
   const srcLabel = { api: '✓ 直连 HTTP API', cli: '✓ 本地已授权 CLI', none: '✗ 未配置（用离线示例数据）' };
-  console.log(`\n  沙游心语  →  http://127.0.0.1:${cfg.port}\n`);
+  const displayUrl = cfg.publicUrl || `http://127.0.0.1:${cfg.port}`;
+  console.log(`\n  沙游心语  →  ${displayUrl}\n`);
   console.log(`  内容数据源: ${srcLabel[SOURCE]}`);
   console.log(`  OAuth 登录 : ${cfg.appId && cfg.appKey ? '✓ 已配置' : '✗ 缺 app_id / app_key（登录按钮会提示）'}`);
   console.log(`  写入互动   : ✗ 平台不提供，由「跳转知乎 + 回链校验」实现\n`);

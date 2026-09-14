@@ -4,6 +4,9 @@
   "description": "沙游心语 · 沙盘 × 知乎（含知乎 OAuth 登录与内容 API 接入）",
   "type": "module",
   "main": "server/index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",

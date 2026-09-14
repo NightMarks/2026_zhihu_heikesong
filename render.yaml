@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: shayu-zhihu
+    runtime: node
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: ZHIHU_APP_ID
+        value: "504"
+      - key: ZHIHU_ACCESS_SECRET
+        sync: false
+      - key: ZHIHU_APP_KEY
+        sync: false
+      # 可选：Render 自动提供 RENDER_EXTERNAL_URL，应用会据此生成 OAuth 回调。
+      # 如果知乎后台登记的是自定义域名，请取消下面两行注释并填完整公网地址。
+      # - key: ZHIHU_REDIRECT_URI
+      #   value: https://your-domain.example/auth/callback
