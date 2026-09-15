@@ -24,7 +24,7 @@ const CATEGORIES = [
       '原生家庭 如何影响一个人的性格',
     ],
     toys:[
-      {id:'child',name:'小孩',emoji:'👶',meaning:'新的开始、脆弱、好奇，或尚未被表达的一部分自己。'},
+      {id:'child',name:'抱膝微光童',emoji:'👶',meaning:'投射创伤经历、极度缺乏安全感与脆弱'},
       {id:'student',name:'学生',emoji:'🧑‍🎓',meaning:'学习、成长、对未来既期待又不安的阶段。'},
       {id:'worker',name:'工人',emoji:'👷',meaning:'劳作、责任、用双手支撑生活的力量。'},
       {id:'doctor',name:'医生',emoji:'🧑‍⚕️',meaning:'疗愈的愿望，或希望"被照顾、被修好"的部分。'},
