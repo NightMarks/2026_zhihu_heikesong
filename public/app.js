@@ -24,13 +24,13 @@ const CATEGORIES = [
       '原生家庭 如何影响一个人的性格',
     ],
     toys:[
-      {id:'child',name:'抱膝微光童',emoji:'👶',meaning:'投射创伤经历、极度缺乏安全感与脆弱'},
-      {id:'student',name:'学生',emoji:'🧑‍🎓',meaning:'学习、成长、对未来既期待又不安的阶段。'},
-      {id:'worker',name:'工人',emoji:'👷',meaning:'劳作、责任、用双手支撑生活的力量。'},
-      {id:'doctor',name:'医生',emoji:'🧑‍⚕️',meaning:'疗愈的愿望，或希望"被照顾、被修好"的部分。'},
-      {id:'police',name:'警察',emoji:'👮',meaning:'秩序、规则与保护，也可能是约束感的来源。'},
-      {id:'elder',name:'老人',emoji:'🧓',meaning:'经验、智慧与时间，家族记忆的携带者。'},
-      {id:'mystery',name:'神秘人',emoji:'🧙',meaning:'尚未看清的自己、潜意识里的未知力量。'}
+      {id:'child',name:'抱膝微光童',emoji:'👶',meaning:'投射创伤经历、极度缺乏安全感与脆弱。'},
+      {id:'student',name:'吹蒲公英的孩童',emoji:'🧑‍🎓',meaning:'仰头吹拂的快乐小孩；投射被治愈的内在小孩、纯真与希望散播。'},
+      {id:'worker',name:'负石行者',emoji:'👷',meaning:'弯腰背负巨石的剪影；代表过重的责任感、被生活压垮的耗竭。'},
+      {id:'doctor',name:'拥抱的双人',emoji:'🧑‍⚕️',meaning:'紧紧相拥的陶土人；隐喻安全的依恋、亲密关系与接纳。'},
+      {id:'police',name:'提线木偶',emoji:'👮',meaning:'被杂乱细线悬吊的木偶；象征被控制的人生、宿命感与失去自主权。'},
+      {id:'elder',name:'冥想者',emoji:'🧓',meaning:'盘腿闭目的发光半透明人；象征内心的平静、自我觉察与整合。'},
+      {id:'mystery',name:'提灯探路人',emoji:'🧙',meaning:'举着暖光小灯的行者；代表在迷茫中自我指引，或生活中的“贵人”。'}
     ]
   },
   {
@@ -46,13 +46,13 @@ const CATEGORIES = [
       '与自然相处 动物给人的启发',
     ],
     toys:[
-      {id:'cat',name:'猫',emoji:'🐱',meaning:'保持距离的亲近：想靠近，又要守住自己的领地。'},
-      {id:'dog',name:'狗',emoji:'🐶',meaning:'忠诚、依恋与无条件的接纳，也可能是讨好的一面。'},
-      {id:'bird',name:'鸟',emoji:'🐦',meaning:'自由、离开的渴望，或俯瞰全局的视角。'},
-      {id:'fish',name:'鱼',emoji:'🐟',meaning:'潜意识深处的流动，情绪与感受的领域。'},
-      {id:'horse',name:'马',emoji:'🐴',meaning:'被驾驭的力量与热情，前进的动力。'},
-      {id:'turtle',name:'乌龟',emoji:'🐢',meaning:'缓慢而稳妥的节奏，需要时可以缩回壳里。'},
-      {id:'butterfly',name:'蝴蝶',emoji:'🦋',meaning:'蜕变与转化，破茧之后的轻盈。'}
+      {id:'cat',name:'盘踞黑豹',emoji:'🐱',meaning:'肌肉紧绷的黑曜石豹子；代表压抑的攻击性、过度警觉与敌意。'},
+      {id:'dog',name:'炸毛流浪猫',emoji:'🐶',meaning:'弓背哈气的粗糙陶土猫；投射极度的防御、对外界的不信任。'},
+      {id:'bird',name:'衔枝白鸽',emoji:'🐦',meaning:'嘴衔绿枝的白瓷鸽子；代表内心的和平、争吵后的和解与疗愈。'},
+      {id:'fish',name:'跃水海豚',emoji:'🐟',meaning:'呈现完美抛物线的海豚；投射纯粹的快乐、活力与灵动的直觉。'},
+      {id:'horse',name:'断角雄鹿',emoji:'🐴',meaning:'犄角折断、低头垂丧；象征受挫的自尊心、权力丧失与阉割焦虑。'},
+      {id:'turtle',name:'柔软刺猬',emoji:'🐢',meaning:'全身长满硅胶软刺；渴望亲密却又条件反射般抗拒（回避型依恋）。'},
+      {id:'butterfly',name:'破茧玻璃蝶',emoji:'🦋',meaning:'破开粗糙木茧的彩玻璃蝴蝶；代表痛苦但成功的蜕变与新生。'}
     ]
   },
   {
@@ -68,13 +68,13 @@ const CATEGORIES = [
       '安全感 来自哪里',
     ],
     toys:[
-      {id:'thatch',name:'草房',emoji:'🛖',meaning:'简朴、自然、与土地的亲近，也可能是暂时的庇护。'},
-      {id:'stone',name:'石头房',emoji:'🪨',meaning:'坚固、防御、经得起风雨的内在结构。'},
-      {id:'cabin',name:'小木屋',emoji:'🏠',meaning:'温暖、质朴的归属感，想要"回到"的地方。'},
-      {id:'flat',name:'公寓',emoji:'🏢',meaning:'日常、秩序与现实的居住状态。'},
-      {id:'tower',name:'高楼大厦',emoji:'🏙️',meaning:'抱负、社会成就，或疏离感。'},
-      {id:'ruin',name:'废墟',emoji:'🏚️',meaning:'结束、损耗，或等待被重建的旧有模式。'},
-      {id:'castle',name:'城堡',emoji:'🏰',meaning:'理想、保护与边界，也可能是一层华丽的外壳。'}
+      {id:'thatch',name:'悬崖危房',emoji:'🛖',meaning:'一半地基悬空的破屋；投射摇摇欲坠的安全感、随时崩塌的焦虑。'},
+      {id:'stone',name:'水泥牢笼',emoji:'🪨',meaning:'钢筋裸露的封闭方块；代表画地为牢、被现实困境深深束缚。'},
+      {id:'cabin',name:'冒烟小木屋',emoji:'🏠',meaning:'烟囱透出暖光和白烟；投射内心的归属感、温暖的避风港。'},
+      {id:'flat',name:'繁茂温室',emoji:'🏢',meaning:'充满生机、玻璃完好的花房；代表良好的自我保护与成长的孵化器。'},
+      {id:'tower',name:'坚固灯塔',emoji:'🏙️',meaning:'屹立在平地上的发光塔；象征明确的信仰、人生方向与指引者。'},
+      {id:'ruin',name:'迷宫高墙',emoji:'🏚️',meaning:'沉重的混凝土迷宫切片；代表内心的困局、极度僵化的人际防御。'},
+      {id:'castle',name:'断阶城堡',emoji:'🏰',meaning:'阶梯断裂悬空的华丽城堡；象征完美主义带来的孤立、可望不可即的目标。'}
     ]
   },
   {
@@ -90,13 +90,13 @@ const CATEGORIES = [
       '天气 季节 如何影响心情',
     ],
     toys:[
-      {id:'tree',name:'树',emoji:'🌳',meaning:'扎根与生长，连接大地与天空的稳定力量。'},
-      {id:'flower',name:'花',emoji:'🌸',meaning:'绽放的时刻，美好而短暂的部分自己。'},
-      {id:'mountain',name:'山',emoji:'⛰️',meaning:'需要翻越的障碍，也是可以依靠的屏障。'},
-      {id:'water',name:'水',emoji:'🌊',meaning:'情绪的流动，柔软却有力量。'},
-      {id:'sun',name:'太阳',emoji:'☀️',meaning:'意识、温暖与希望的来源。'},
-      {id:'moon',name:'月亮',emoji:'🌙',meaning:'潜意识、阴柔面与夜晚的思绪。'},
-      {id:'rock',name:'石头',emoji:'🪨',meaning:'沉默的坚持，不轻易改变的内核。'}
+      {id:'tree',name:'连根拔起的大树',emoji:'🌳',meaning:'根系外露倒伏的古树；象征失去归属感、经历重大变故后的动荡。'},
+      {id:'flower',name:'石缝野花',emoji:'🌸',meaning:'顶开巨石绽放的黄花；象征在巨大压力下依然坚韧不拔的生命力。'},
+      {id:'mountain',name:'冰封火山',emoji:'⛰️',meaning:'冰块包裹着暗红火山口；代表被极度压抑的愤怒、随时可能爆发的情绪。'},
+      {id:'water',name:'深渊水潭',emoji:'🌊',meaning:'漆黑不见底的树脂水坑；投射对未知潜意识的恐惧、深不可测的抑郁。'},
+      {id:'sun',name:'破晓晨星',emoji:'☀️',meaning:'沙地上升起的半个暖色光球；代表熬过黑暗后的新起点与希望。'},
+      {id:'moon',name:'深渊水潭',emoji:'🌙',meaning:'漆黑不见底的树脂水坑；投射对未知潜意识的恐惧、深不可测的抑郁。'},
+      {id:'rock',name:'干涸河床',emoji:'🪨',meaning:'严重龟裂的泥土；隐喻情感枯竭、职业倦怠（Burnout）与麻木。'}
     ]
   },
   {
@@ -112,11 +112,11 @@ const CATEGORIES = [
       '按自己的节奏生活',
     ],
     toys:[
-      {id:'bike',name:'自行车',emoji:'🚲',meaning:'依靠自己力量的前进，节奏由自己掌握。'},
-      {id:'car',name:'汽车',emoji:'🚗',meaning:'自主与掌控，人生道路的驾驶感。'},
-      {id:'train',name:'火车',emoji:'🚂',meaning:'既定的轨道、集体的节奏，按部就班的旅程。'},
-      {id:'boat',name:'船',emoji:'⛵',meaning:'渡越、过渡期，从一个状态驶向另一个状态。'},
-      {id:'plane',name:'飞机',emoji:'✈️',meaning:'超越、远大的目标，快速脱离当前处境的渴望。'}
+      {id:'bike',name:'倒地单车',emoji:'🚲',meaning:'十字路口倒伏的老式自行车；投射日常生活的焦虑、人生岔路口的瘫痪。'},
+      {id:'car',name:'稳健越野车',emoji:'🚗',meaning:'底盘极高的粗犷模型；隐喻克服重重障碍的能力、抗挫折性。'},
+      {id:'train',name:'铺好的铁轨',emoji:'🚂',meaning:'笔直闪亮的双轨与火车头；代表清晰的人生规划、稳步向前。'},
+      {id:'boat',name:'扬帆巨轮',emoji:'⛵',meaning:'船帆饱满的木制大船；象征宏大的目标、乘风破浪的执行力。'},
+      {id:'plane',name:'发光纸飞机',emoji:'✈️',meaning:'边缘散发微光的折纸；象征纯粹的梦想、不计后果但勇敢的冲动。'}
     ]
   },
   {
@@ -132,10 +132,10 @@ const CATEGORIES = [
       '亲密关系里的边界',
     ],
     toys:[
-      {id:'key',name:'钥匙',emoji:'🗝️',meaning:'解决之道、新的可能性，等待开启的资源。'},
+      {id:'key',name:'发光指南针',emoji:'🗝️',meaning:'指针稳定指向前方的罗盘；代表坚定的内在价值观、不被外界干扰。'},
       {id:'door',name:'门',emoji:'🚪',meaning:'边界与选择：两个阶段之间的出入口。'},
       {id:'bridge',name:'桥',emoji:'🌉',meaning:'连接与过渡，把分离的两端重新连起来。'},
-      {id:'mirror',name:'镜子',emoji:'🪞',meaning:'自我审视、觉察，看见真实自己的机会。'}
+      {id:'mirror',name:'纯净水晶球',emoji:'🪞',meaning:'内部清澈透明的玻璃球；代表看清事物本质的智慧、清晰的未来愿景。'}
     ]
   },
   {
@@ -151,12 +151,12 @@ const CATEGORIES = [
       '童年 幻想 长大后失去了什么',
     ],
     toys:[
-      {id:'fairy',name:'精灵',emoji:'🧚',meaning:'灵感与轻盈的想象，心里尚存的天真。'},
-      {id:'unicorn',name:'独角兽',emoji:'🦄',meaning:'纯粹而稀有的愿望，不愿妥协的理想。'},
-      {id:'wizard',name:'巫师',emoji:'🧙‍♂️',meaning:'转化的能力，相信事情可以变得不同。'},
-      {id:'crystal',name:'水晶球',emoji:'🔮',meaning:'对未来的探问，想要预知与掌控的心情。'},
-      {id:'star',name:'星星',emoji:'⭐',meaning:'指引方向的远景，也可能遥不可及。'},
-      {id:'rainbow',name:'彩虹',emoji:'🌈',meaning:'风雨之后的希望，短暂却被记住的美好。'}
+      {id:'fairy',name:'捧星精灵',emoji:'🧚',meaning:'细小精致的发光人偶；象征内在充沛的创造力、灵感与初心守护。'},
+      {id:'unicorn',name:'云端独角兽',emoji:'🦄',meaning:'柔和色彩的白泥雕塑；代表最纯洁的理想、奇迹般的疗愈力量。'},
+      {id:'wizard',name:'无脸黑袍巫师',emoji:'🧙‍♂️',meaning:'只有兜帽没有面孔的模型；隐喻对未知力量的恐惧、被潜意识反噬的担忧。'},
+      {id:'crystal',name:'瓶中宇宙',emoji:'🔮',meaning:'微缩星空包裹在玻璃瓶中；隐喻内向者极其丰富的精神世界与深度。'},
+      {id:'star',name:'仙女魔法棒',emoji:'⭐',meaning:'顶端带星芒的木棍；投射“希望拥有改变一切的能力”的积极渴望。'},
+      {id:'rainbow',name:'透明彩虹桥',emoji:'🌈',meaning:'散发微弱七彩光芒的拱桥；代表跨越维度的奇妙连结、潜意识与意识的沟通。'}
     ]
   },
   {
@@ -172,10 +172,10 @@ const CATEGORIES = [
       '完美主义 对自己太苛刻',
     ],
     toys:[
-      {id:'sword',name:'剑',emoji:'⚔️',meaning:'力量、决断，直面冲突的勇气或攻击性。'},
-      {id:'shield',name:'盾',emoji:'🛡️',meaning:'自我保护、边界感，温柔而坚定的防御。'},
-      {id:'dragon',name:'龙',emoji:'🐲',meaning:'巨大的、未被驯服的能量——恐惧，或潜能。'},
-      {id:'beast',name:'怪兽',emoji:'👹',meaning:'被具象化的困扰；一旦被看见，就会缩小。'}
+      {id:'sword',name:'豁口巨剑',emoji:'⚔️',meaning:'插在沙地里、残破不堪的重剑；代表过往创伤留下的痕迹、过度防御导致的攻击性。'},
+      {id:'shield',name:'纯银盾牌',emoji:'🛡️',meaning:'光滑闪亮的微缩盾牌；象征健康坚固的个人边界、有效的自我保护。'},
+      {id:'dragon',name:'驯服的小恐龙',emoji:'🐲',meaning:'神态温顺的史前巨兽缩小版；代表成功整合了内心原始的野性与本能。'},
+      {id:'beast',name:'吐火三头犬',emoji:'👹',meaning:'狂暴的地狱恶犬；隐喻内心无法控制的巨大愤怒、极强的敌意与破坏欲。'}
     ]
   }
 ];
