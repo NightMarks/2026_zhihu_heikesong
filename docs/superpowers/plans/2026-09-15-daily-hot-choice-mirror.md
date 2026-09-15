@@ -65,7 +65,7 @@
 - Produces: store data with `dailyChallenges: []`, `challengeRuns: []`, and `choiceProfiles: []`.
 - Preserves: `version: 1`, `works`, `friendRequests`, and `friendships` without data loss.
 
-- [ ] **Step 1: Write the failing migration test**
+- [x] **Step 1: Write the failing migration test**
 
 ```js
 function createLegacyStoreFile(t, data) {
@@ -85,12 +85,12 @@ test('legacy stores gain challenge collections without losing community data', t
 });
 ```
 
-- [ ] **Step 2: Run the focused test and verify failure**
+- [x] **Step 2: Run the focused test and verify failure**
 
 Run: `node --test --test-name-pattern="legacy stores gain challenge" tests/community.test.js`  
 Expected: FAIL because the three collections are `undefined`.
 
-- [ ] **Step 3: Normalize collections on creation and load**
+- [x] **Step 3: Normalize collections on creation and load**
 
 ```js
 const EMPTY_STORE = () => ({
@@ -113,12 +113,12 @@ function normalizeCollections(data) {
 }
 ```
 
-- [ ] **Step 4: Run store/community tests**
+- [x] **Step 4: Run store/community tests**
 
 Run: `node --test tests/community.test.js`  
 Expected: all tests PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add server/store.js tests/community.test.js
@@ -137,7 +137,7 @@ git commit -m "feat(store): add choice mirror collections"
 - Produces: `isSafeHotTopic(item)`, `themeForHotTopic(item)`, `fallbackChallenge(date)`, and `DailyChallengeService#getDaily({ date, hotItems })`.
 - Challenge shape: `{ id, date, title, sourceTopic, primaryDimension, intro, rounds, fallback }`.
 
-- [ ] **Step 1: Write failing schema, risk-filter, and cache tests**
+- [x] **Step 1: Write failing schema, risk-filter, and cache tests**
 
 ```js
 function validGenerated({ source }) {
@@ -171,12 +171,12 @@ test('invalid generation falls back to an approved challenge', async () => {
 });
 ```
 
-- [ ] **Step 2: Run the new test and verify module-not-found failure**
+- [x] **Step 2: Run the new test and verify module-not-found failure**
 
 Run: `node --test tests/challenges.test.js`  
 Expected: FAIL because `server/challenges.js` does not exist.
 
-- [ ] **Step 3: Implement strict challenge normalization**
+- [x] **Step 3: Implement strict challenge normalization**
 
 ```js
 export const DIMENSIONS = new Set(['change', 'boundary', 'relationship', 'resource', 'control']);
@@ -194,7 +194,7 @@ export function normalizeChallenge(input, { date, sourceTopic = '' }) {
 }
 ```
 
-- [ ] **Step 4: Implement filtering, template generation, persistence, and fallback**
+- [x] **Step 4: Implement filtering, template generation, persistence, and fallback**
 
 ```js
 export class DailyChallengeService {
@@ -229,7 +229,7 @@ export async function requestChallengeGeneration({ client, model, date, source, 
 }
 ```
 
-- [ ] **Step 5: Run focused tests and commit**
+- [x] **Step 5: Run focused tests and commit**
 
 Run: `node --test tests/challenges.test.js`  
 Expected: all tests PASS.
@@ -250,7 +250,7 @@ git commit -m "feat(challenge): generate safe daily hot topics"
 - Returns: `{ added, removed, moved, resized, rotated, firstMeaningfulAction }`.
 - Items receive a stable challenge-only `instanceId`; `toyId` alone is not unique.
 
-- [ ] **Step 1: Write failing add/move/remove/order tests**
+- [x] **Step 1: Write failing add/move/remove/order tests**
 
 ```js
 test('diffs stable instances and keeps the first meaningful action', () => {
@@ -264,12 +264,12 @@ test('diffs stable instances and keeps the first meaningful action', () => {
 });
 ```
 
-- [ ] **Step 2: Run and verify missing-module failure**
+- [x] **Step 2: Run and verify missing-module failure**
 
 Run: `node --test tests/tray-diff.test.js`  
 Expected: FAIL because the module does not exist.
 
-- [ ] **Step 3: Implement UMD-style export and normalized comparisons**
+- [x] **Step 3: Implement UMD-style export and normalized comparisons**
 
 ```js
 (function exposeTrayDiff(global) {
@@ -291,7 +291,7 @@ Expected: FAIL because the module does not exist.
 })(typeof window === 'undefined' ? globalThis : window);
 ```
 
-- [ ] **Step 4: Run tests and commit**
+- [x] **Step 4: Run tests and commit**
 
 Run: `node --test tests/tray-diff.test.js`  
 Expected: all tests PASS.
@@ -313,7 +313,7 @@ git commit -m "feat(challenge): track sandtray changes"
 - Produces: `ChallengeRunService#createRun`, `saveRound`, `createReflection`, `confirmObservation`, `getProfile`, `updateArchetypeSettings`, `deleteRecord`.
 - Produces: `createChallengeRunRouter({ service, getUser })`.
 
-- [ ] **Step 1: Write failing ownership, confirmation, threshold, and privacy tests**
+- [x] **Step 1: Write failing ownership, confirmation, threshold, and privacy tests**
 
 ```js
 function evidenceFor(archetypeId, { count, dimensions }) {
@@ -339,12 +339,12 @@ test('private archetypes are omitted from public views and matching', () => {
 });
 ```
 
-- [ ] **Step 2: Run and verify module-not-found failure**
+- [x] **Step 2: Run and verify module-not-found failure**
 
 Run: `node --test tests/challenge-runs.test.js`  
 Expected: FAIL because the modules do not exist.
 
-- [ ] **Step 3: Implement deterministic archetype aggregation**
+- [x] **Step 3: Implement deterministic archetype aggregation**
 
 ```js
 export function computeArchetypes(confirmations, { minimum = 3 } = {}) {
@@ -359,7 +359,7 @@ export function computeArchetypes(confirmations, { minimum = 3 } = {}) {
 }
 ```
 
-- [ ] **Step 4: Implement service validation and rule-based fallback reflection**
+- [x] **Step 4: Implement service validation and rule-based fallback reflection**
 
 ```js
 createReflection(user, runId) {
@@ -378,12 +378,12 @@ confirmObservation(user, runId, input) {
 }
 ```
 
-- [ ] **Step 5: Add router endpoints and run tests**
+- [x] **Step 5: Add router endpoints and run tests**
 
 Run: `node --test tests/challenge-runs.test.js`  
 Expected: all tests PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add server/archetypes.js server/challenge-runs.js tests/challenge-runs.test.js
@@ -402,7 +402,7 @@ git commit -m "feat(profile): add confirmed choice archetypes"
 - Consumes: `DailyChallengeService`, `ChallengeRunService`, `createChallengeRunRouter`.
 - Produces browser methods: `dailyChallenge`, `createChallengeRun`, `saveChallengeRound`, `createChallengeReflection`, `confirmChoiceObservation`, `choiceProfile`, `updateArchetypeSettings`, `deleteChoiceRecord`.
 
-- [ ] **Step 1: Add failing route/API wiring assertions**
+- [x] **Step 1: Add failing route/API wiring assertions**
 
 ```js
 assert.match(apiSource, /dailyChallenge:\s*\(\)\s*=>\s*request\('\/api\/challenges\/daily'\)/);
@@ -410,12 +410,12 @@ assert.match(serverSource, /app\.get\('\/api\/challenges\/daily'/);
 assert.match(serverSource, /app\.use\('\/api\/challenge-runs'/);
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 Run: `node --test tests/challenges.test.js tests/frontend-wiring.test.js`  
 Expected: FAIL because routes and client methods are absent.
 
-- [ ] **Step 3: Construct services and add daily route**
+- [x] **Step 3: Construct services and add daily route**
 
 ```js
 const dailyChallengeService = new DailyChallengeService({ store: communityService.store });
@@ -433,7 +433,7 @@ app.use('/api/challenge-runs', createChallengeRunRouter({
 }));
 ```
 
-- [ ] **Step 4: Add exact browser API wrappers**
+- [x] **Step 4: Add exact browser API wrappers**
 
 ```js
 dailyChallenge: () => request('/api/challenges/daily'),
@@ -447,7 +447,7 @@ saveChallengeRound: (runId, roundId, payload) =>
 choiceProfile: () => request('/api/challenge-runs/profile'),
 ```
 
-- [ ] **Step 5: Run focused and full tests; commit**
+- [x] **Step 5: Run focused and full tests; commit**
 
 Run: `npm test`  
 Expected: all tests PASS.
@@ -473,7 +473,7 @@ git commit -m "feat(api): expose daily choice mirror flow"
 - Editor bridge: `{ getState, saveState, snapshotTray, replaceTray, resetTrayProcess, renderSandbox, toyOf, switchView, toast, escapeHtml }`.
 - Produces: challenge stages `intro`, `initial`, `round`, `reflection`, `complete`.
 
-- [ ] **Step 1: Add failing navigation, script-order, and bridge assertions**
+- [x] **Step 1: Add failing navigation, script-order, and bridge assertions**
 
 ```js
 assert.match(html, /data-view="challenge"[^>]*>[^<]*每日热题/);
@@ -483,12 +483,12 @@ assert.match(app, /ShaYuChallenge\.init\(/);
 assert.match(app, /snapshotTray/);
 ```
 
-- [ ] **Step 2: Run and verify failure**
+- [x] **Step 2: Run and verify failure**
 
 Run: `node --test tests/frontend-wiring.test.js`  
 Expected: FAIL because the challenge view and bridge are absent.
 
-- [ ] **Step 3: Add persisted local draft fields**
+- [x] **Step 3: Add persisted local draft fields**
 
 ```js
 challengeDraft: null,
@@ -497,7 +497,7 @@ choiceProfileCache: null,
 
 On load, accept `challengeDraft` only when it is an object with a string `runId`; otherwise set it to `null`.
 
-- [ ] **Step 4: Add navigation and semantic challenge containers**
+- [x] **Step 4: Add navigation and semantic challenge containers**
 
 ```html
 <button data-view="report">沙盘报告</button>
@@ -509,7 +509,7 @@ On load, accept `challengeDraft` only when it is an object with a string `runId`
 
 Load `tray-diff.js`, `challenge.js`, and `choice-profile.js` after `api.js` and before `app.js`.
 
-- [ ] **Step 5: Implement the challenge state machine**
+- [x] **Step 5: Implement the challenge state machine**
 
 ```js
 async function open() {
@@ -526,15 +526,15 @@ async function completeRound() {
 }
 ```
 
-- [ ] **Step 6: Expose editor events without changing free-play behavior**
+- [x] **Step 6: Expose editor events without changing free-play behavior**
 
 Every existing tray mutation calls `ShaYuChallenge.recordAction(action)` only when the challenge module reports an active round. Free-play continues to update `state.trayProcess` and invalidate `state.report` exactly as before.
 
-- [ ] **Step 7: Add responsive styles and reflection controls**
+- [x] **Step 7: Add responsive styles and reflection controls**
 
 Use existing CSS variables and cards. At widths below `760px`, stack the prompt above the editor, keep the primary action sticky, and preserve current touch placement behavior.
 
-- [ ] **Step 8: Run tests and commit**
+- [x] **Step 8: Run tests and commit**
 
 Run: `npm test`  
 Expected: all tests PASS.
@@ -560,7 +560,7 @@ git commit -m "feat(game): add daily choice mirror mode"
 - Match request addition: `archetypeIds: string[]`; omitted/empty means original score formula.
 - Candidate archetypes come only from `isPublic && matchEligible` profile settings.
 
-- [ ] **Step 1: Write failing publishing/privacy/matching tests**
+- [x] **Step 1: Write failing publishing/privacy/matching tests**
 
 ```js
 test('challenge works expose only explicitly public archetypes', t => {
@@ -576,12 +576,12 @@ test('empty archetype selection preserves structural matching scores', t => {
 });
 ```
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run: `node --test tests/community.test.js tests/frontend-wiring.test.js`  
 Expected: FAIL because work/profile fields and controls are absent.
 
-- [ ] **Step 3: Normalize challenge metadata and resolve public archetypes server-side**
+- [x] **Step 3: Normalize challenge metadata and resolve public archetypes server-side**
 
 ```js
 const challenge = input?.challenge && typeof input.challenge.id === 'string'
@@ -592,7 +592,7 @@ const publicArchetypes = this.resolveShareableArchetypes(user.id, input?.archety
 
 Never accept client-provided archetype names or visibility.
 
-- [ ] **Step 4: Add optional matching weight without changing disabled behavior**
+- [x] **Step 4: Add optional matching weight without changing disabled behavior**
 
 ```js
 const enabledArchetypes = normalizeIds(input?.archetypeIds);
@@ -604,15 +604,15 @@ return { score: Math.round(structural.score * 0.85 + archetypeScore * 15),
   scoreBreakdown: { structural: structural.score, archetype: Math.round(archetypeScore * 100) } };
 ```
 
-- [ ] **Step 5: Reuse publish and matcher modals in the browser**
+- [x] **Step 5: Reuse publish and matcher modals in the browser**
 
 When a challenge is complete, `openPublish()` reads the active challenge result from the bridge and displays opt-in checkboxes for currently public archetypes. `openMatcher()` leaves archetype matching unchecked by default and submits only checked IDs.
 
-- [ ] **Step 6: Render public archetypes with non-diagnostic copy**
+- [x] **Step 6: Render public archetypes with non-diagnostic copy**
 
 Show small tags on challenge works and details. Add the fixed note “近期选择方式，会随新记录变化，不是心理诊断。” Do not show private, match-only, or rejected evidence.
 
-- [ ] **Step 7: Run tests and commit**
+- [x] **Step 7: Run tests and commit**
 
 Run: `npm test`  
 Expected: all tests PASS.
@@ -633,17 +633,17 @@ git commit -m "feat(community): match opt-in choice archetypes"
 - Consumes the completed daily challenge, publishing, profile, and matching flows.
 - Produces truthful current-feature documentation and a checked implementation plan.
 
-- [ ] **Step 1: Run the complete automated suite**
+- [x] **Step 1: Run the complete automated suite**
 
 Run: `npm test`  
 Expected: all tests PASS with zero failures.
 
-- [ ] **Step 2: Run the server smoke checks**
+- [x] **Step 2: Run the server smoke checks**
 
 Run the app with a temporary `COMMUNITY_DATA_PATH`, then request `/healthz`, `/api/capabilities`, and the authenticated daily challenge endpoint.  
 Expected: health is `ok`, capabilities remain valid, unauthenticated challenge requests return `401`, and authenticated requests return a four-round challenge.
 
-- [ ] **Step 3: Complete the manual browser checklist**
+- [x] **Step 3: Complete the manual browser checklist**
 
 - Free-play still reaches the original report and publish dialog.
 - “每日热题” appears beside “沙盘报告”.
@@ -655,11 +655,11 @@ Expected: health is `ok`, capabilities remain valid, unauthenticated challenge r
 - Matching with tags disabled matches the old result; enabling selected tags adds a separate reason.
 - Mobile layout remains usable at 390 px width.
 
-- [ ] **Step 4: Update documentation truthfully**
+- [x] **Step 4: Update documentation truthfully**
 
 Remove “下一阶段” from the README daily-hot heading only after all acceptance checks pass. Add the new three-minute flow to `docs/DEMO.md`, including the fallback path and privacy note.
 
-- [ ] **Step 5: Mark completed plan checkboxes and commit**
+- [x] **Step 5: Mark completed plan checkboxes and commit**
 
 ```powershell
 git add README.md docs/DEMO.md docs/superpowers/plans/2026-09-15-daily-hot-choice-mirror.md
