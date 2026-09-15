@@ -6,6 +6,7 @@
       v: 2,
       insp: Object.fromEntries(categories.map(category => [category.id, 0])),
       unlocked: {},
+      unlockCosts: {},
       tray: [],
       trayStory: '',
       trayProcess: { startedAt: null, lastEditedAt: null, editCount: 0, actions: {}, nextOrder: 1 },
@@ -22,6 +23,7 @@
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
       if (saved?.v === 2) {
         saved.insp ||= {};
+        saved.unlockCosts ||= {};
         for (const category of categories) {
           if (typeof saved.insp[category.id] !== 'number') saved.insp[category.id] = 0;
         }
@@ -37,9 +39,22 @@
     return fresh(categories);
   }
 
+  function ensureUnlockCosts(state, categories, random = Math.random) {
+    state.unlockCosts ||= {};
+    for (const category of categories) {
+      for (const toy of category.toys) {
+        const current = state.unlockCosts[toy.id];
+        if (!Number.isInteger(current) || current < 1 || current > 3) {
+          state.unlockCosts[toy.id] = Math.floor(random() * 3) + 1;
+        }
+      }
+    }
+    return state.unlockCosts;
+  }
+
   function save(state) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
-  global.ShaYuState = Object.freeze({ load, save });
+  global.ShaYuState = Object.freeze({ load, save, ensureUnlockCosts });
 })(window);

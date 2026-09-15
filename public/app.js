@@ -312,6 +312,8 @@ let CAP={contentApi:false,oauth:false,oauthReady:false,judgeLoginReady:false,log
 let POSTS={};              // catId -> 知乎内容数组（运行时从 API 拉取）
 let state=ShaYuState.load(CATEGORIES);
 function save(){ShaYuState.save(state)}
+ShaYuState.ensureUnlockCosts(state,CATEGORIES);
+save();
 
 /* ========== 工具 ========== */
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
@@ -762,9 +764,9 @@ function renderUnlockPanel(catId){
     <h3>${cat.icon} ${cat.name} <span class="pill">💡 ${insp}</span></h3>
     <div class="insp-big">当前灵感值 <b>${insp}</b>，点击沙具解锁</div>
     <div class="unlock-list">
-      ${cat.toys.map((t,i)=>{
+      ${cat.toys.map(t=>{
         const owned=state.unlocked[t.id];
-        const cost=i+1;
+        const cost=state.unlockCosts[t.id];
         const afford=insp>=cost;
         return `<div class="unlock-item ${owned?'owned':''} ${afford||owned?'':'unaffordable'}" data-toy="${t.id}"
           ${owned?'':`onclick="tryUnlock('${catId}','${t.id}',${cost})"`}>
