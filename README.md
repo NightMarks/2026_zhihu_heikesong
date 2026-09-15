@@ -94,7 +94,7 @@ AI 不会根据一件沙具给玩家贴人格标签，也不会进行心理诊�
 - 登录用户中心：资料、创作和关注列表，支持“加载更多”分页
 - 用户创作链接归属验证；需要可用数据源和用户身份
 - 桌面拖拽或点击放置沙具、撤销重做、旋转缩放、图层调整和图片导出
-- 自动覆盖全部分析维度的大模型沙盘报告，并保留本地规则兜底
+- 大模型同时读取沙盘图片、结构坐标与制作记录，依据六维框架生成心理探索报告；失败时明确提示，不以本地模板冒充 AI
 - 知乎热榜自动生成每日四轮沙盘挑战，带风险主题过滤、每日缓存和内置降级命题
 - 挑战过程差异分析、玩家确认/拒绝、跨局选择原型与逐项隐私控制
 - 跨设备线上社区：作品、点赞、收藏、评论和分页加载
@@ -281,19 +281,19 @@ JUDGE_LOGIN_DISPLAY_NAME=评委体验账号
 
 | 配置 | 用途 |
 |---|---|
-| `ZHIHU_ACCESS_SECRET` | 搜索、热榜和 AI 报告等内容 API |
+| `ZHIHU_ACCESS_SECRET` | 知乎搜索、热榜和用户内容 API |
 | `ZHIHU_APP_ID` | 知乎 OAuth 应用标识 |
 | `ZHIHU_APP_KEY` | OAuth 服务端秘钥 |
 | `ZHIHU_REDIRECT_URI` | OAuth 完成后的公网 HTTPS 回调 |
 | `AI_API_KEY` | 仅服务端使用的大模型 API Key |
 | `AI_BASE_URL` | OpenAI 兼容接口地址 |
-| `AI_MODEL` | 沙盘分析模型，默认 `gpt-5.6-sol` |
+| `AI_MODEL` | 沙盘视觉分析模型；必须支持 Chat Completions 的 `image_url` 图片输入 |
 | `COMMUNITY_DATA_PATH` | 社区持久化文件路径；Docker 中建议 `/app/data/local-store.json` |
 | `PORT` | 服务端口，默认 3000 |
 
 真实秘钥只能放在 `.env` 或部署平台的 Secret 中，不得写入 `public/`、README、截图或提交记录。`.env` 已被 `.gitignore` 忽略。
 
-示例中的 `api.openai-next.com` 是 OpenAI 兼容网关，并非 OpenAI 官方 `api.openai.com`。上线前请确认该服务商支持所选模型，并审阅其数据留存、隐私和计费规则；发送给模型的内容仅应包含沙盘结构数据。
+示例中的 `api.openai-next.com` 是 OpenAI 兼容网关，并非 OpenAI 官方 `api.openai.com`。上线前请确认服务商和所选模型支持视觉输入，并审阅其数据留存、隐私和计费规则。生成报告时会把用户当前沙盘的合成图片、结构坐标、制作记录和用户主动填写的自述发送给该模型。
 
 ### OAuth 说明
 

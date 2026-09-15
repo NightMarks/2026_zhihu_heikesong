@@ -78,3 +78,13 @@ test('starting a normal report clears stale daily challenge metadata', () => {
   const goReport = app.match(/function goReport\(\)\{[\s\S]*?\n\}/)?.[0] || '';
   assert.match(goReport, /state\.challengeResult=null/);
 });
+
+test('free report sends a rendered sandtray image and never silently disguises AI failure', () => {
+  assert.match(app, /async function captureTrayImage\(\)/);
+  assert.match(app, /const imageDataUrl=await captureTrayImage\(\)/);
+  assert.match(app, /JSON\.stringify\(\{features:r\.features,imageDataUrl\}\)/);
+  assert.doesNotMatch(app, /catch\(e\)\{\/\* 静默降级 \*\/\}/);
+  assert.match(app, /大模型视觉分析失败/);
+  assert.match(app, /r\.visualAnalysis=true/);
+  assert.match(app, /state\.report\?\.visualAnalysis/);
+});

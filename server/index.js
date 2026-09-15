@@ -126,7 +126,7 @@ const communityService = new CommunityService(createJsonStore(cfg.communityDataP
 const dailyChallengeService = new DailyChallengeService({ store: communityService.store });
 const challengeRunService = new ChallengeRunService({ store: communityService.store });
 app.set('trust proxy', 1);
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: false, limit: '16kb' }));
 app.use(cookieParser());
 app.use((req, res, next) => {
@@ -579,12 +579,18 @@ app.post('/api/report', async (req, res) => {
   if (!s.user?.id) {
     return res.status(401).json({ error: '请先登录知乎，再生成沙盘报告' });
   }
-  const { features, aspects } = req.body || {};
+  const { features, imageDataUrl, aspects } = req.body || {};
   if (typeof features !== 'string' || !features.trim()) {
     return res.status(400).json({ error: '缺少沙盘结构特征' });
   }
   if (features.length > 8000) {
     return res.status(413).json({ error: '沙盘结构数据过长' });
+  }
+  if (!/^data:image\/(?:jpeg|png|webp);base64,/.test(String(imageDataUrl || ''))) {
+    return res.status(400).json({ error: '缺少可供大模型查看的沙盘图片' });
+  }
+  if (imageDataUrl.length > 1_500_000) {
+    return res.status(413).json({ error: '沙盘图片过大，请减少沙具或稍后重试' });
   }
 
   if (!analysisClient) {
@@ -604,12 +610,16 @@ app.post('/api/report', async (req, res) => {
       client: analysisClient,
       model: cfg.aiModel,
       features,
+      imageDataUrl,
       aspects: normalizeAspects(aspects),
     });
     res.json({ ok: true, ...result, source: 'llm' });
   } catch (e) {
     console.error('[ai-report]', e?.status || '', e?.message || e);
-    res.json({ ok: false, error: '大模型暂时未返回结果，请稍后重试', fallback: true });
+    const error = e?.status === 400
+      ? '当前 AI_MODEL 或接口不支持图片输入，请在服务器配置支持视觉理解的模型'
+      : '大模型视觉分析暂时失败，请稍后重试';
+    res.status(e?.status === 429 ? 429 : 502).json({ ok: false, error });
   }
 });
 

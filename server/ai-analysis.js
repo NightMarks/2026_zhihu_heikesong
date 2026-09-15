@@ -17,7 +17,7 @@ export function normalizeAspects() {
   return [...DEFAULT_ASPECTS];
 }
 
-export function buildAnalysisMessages(features) {
+export function buildAnalysisMessages(features, imageDataUrl) {
   const safeFeatures = String(features || '').slice(0, 8000);
 
   return [
@@ -26,6 +26,8 @@ export function buildAnalysisMessages(features) {
       content: `你是“沙游心语”的沙盘叙事陪伴者。你要做有依据的心理探索分析，而不是只复述画面、泛泛安慰；你的任务不是进行心理诊断、人格判断或治疗建议。
 
 核心次序：整体优先于局部；制作过程优先于最终作品；来访者自述优先于理论象征。每一条心理联想必须使用“客观证据 → 一到两种可能性 → 邀请用户确认”的链条。不得用含糊的安慰替代分析，也不得抓住单个沙具套用象征词典。
+
+证据使用方式：你会同时收到最终沙盘图片和结构化数据。必须先看图片，观察整体构图、视觉重心、留白、边界、朝向、相对大小、连接、阻隔与场景关系；再用坐标和过程记录校正视觉判断。图片与结构数据不一致时明确指出不确定性，不得自行补齐。参考常见布局模式时，可以讨论集中型、分散型、上方堆满、下方堆满、左侧堆满或右侧堆满，但这些只能作为联想框架，不能直接推断人格或疾病。
 
 必须依次输出以下六个 Markdown 二级标题，不能合并或遗漏：
 ## 1 客观观察与整体主题判断
@@ -57,12 +59,21 @@ export function buildAnalysisMessages(features) {
     },
     {
       role: 'user',
-      content: `请严格根据下面的客观沙盘数据完成六维心理探索分析。
+      content: [
+        {
+          type: 'text',
+          text: `请严格结合随附的沙盘图片与下面的客观结构数据，完成六维心理探索分析。图片用于理解整体场景和沙具关系，结构数据用于核对名称、位置、大小与制作过程。
 
 沙盘数据：
 ${safeFeatures}
 
-不要遗漏证据链；如果数据不足，请明确说不足，不要虚构。把最终解释权交还给用户。`,
+不要遗漏证据链；至少引用三处可在图片或结构数据中核对的具体证据。如果数据不足，请明确说不足，不要虚构。把最终解释权交还给用户。`,
+        },
+        {
+          type: 'image_url',
+          image_url: { url: imageDataUrl, detail: 'high' },
+        },
+      ],
     },
   ];
 }
@@ -72,9 +83,12 @@ export function createAnalysisClient({ apiKey, baseURL, timeout = 60_000 }) {
   return new OpenAI({ apiKey, baseURL, timeout, maxRetries: 1 });
 }
 
-export async function requestSandtrayAnalysis({ client, model, features, aspects }) {
+export async function requestSandtrayAnalysis({ client, model, features, imageDataUrl, aspects }) {
   if (!client) throw new Error('未配置大模型 API Key');
-  const messages = buildAnalysisMessages(features);
+  if (!/^data:image\/(?:jpeg|png|webp);base64,/.test(String(imageDataUrl || ''))) {
+    throw new Error('缺少沙盘图片或图片格式不受支持');
+  }
+  const messages = buildAnalysisMessages(features, imageDataUrl);
   const response = await client.chat.completions.create({ model, messages });
   const text = response?.choices?.[0]?.message?.content?.trim();
   if (!text) throw new Error('大模型没有返回分析内容');

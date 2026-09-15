@@ -527,7 +527,7 @@ function switchView(name){
   $('#view-'+name).classList.add('active');
   if(name==='community')ShaYuCommunity.open();
   if(name==='tray'){renderLibrary();renderSandbox()}
-  if(name==='report') state.report?renderReport():(state.tray.length?generateReport():renderReport());
+  if(name==='report') state.report?.visualAnalysis?renderReport():(state.tray.length?generateReport():renderReport());
   if(name==='challenge')ShaYuChallenge.open();
 }
 
@@ -952,26 +952,37 @@ function layerSelected(direction){
 function loadAsset(src){
   return new Promise(resolve=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>resolve(null);image.src=src});
 }
-async function exportTrayImage(){
-  if(!state.tray.length)return toast('沙盘还是空的');
-  const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=760;
+async function drawTrayCanvas(width=1200,boardHeight=700,footerHeight=0){
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=boardHeight+footerHeight;
   const ctx=canvas.getContext('2d');
   const sand=await loadAsset('/images/sandboard.jpg');
-  if(sand)ctx.drawImage(sand,0,0,1200,700);
-  else{const gradient=ctx.createLinearGradient(0,0,1200,760);gradient.addColorStop(0,'#f7e4b4');gradient.addColorStop(1,'#d8b97a');ctx.fillStyle=gradient;ctx.fillRect(0,0,1200,700)}
-  ctx.strokeStyle='rgba(112,83,42,.28)';ctx.lineWidth=4;ctx.strokeRect(12,12,1176,676);
+  if(sand)ctx.drawImage(sand,0,0,width,boardHeight);
+  else{const gradient=ctx.createLinearGradient(0,0,width,boardHeight);gradient.addColorStop(0,'#f7e4b4');gradient.addColorStop(1,'#d8b97a');ctx.fillStyle=gradient;ctx.fillRect(0,0,width,boardHeight)}
+  const ratio=width/1200;
+  ctx.strokeStyle='rgba(112,83,42,.28)';ctx.lineWidth=Math.max(2,4*ratio);ctx.strokeRect(12*ratio,12*ratio,width-24*ratio,boardHeight-24*ratio);
   const assets=new Map();
   await Promise.all([...new Set(state.tray.map(item=>toyOf(item.toyId)?.image).filter(Boolean))].map(async src=>assets.set(src,await loadAsset(src))));
   state.tray.forEach(item=>{
     const toy=toyOf(item.toyId);if(!toy)return;
-    ctx.save();ctx.translate(item.x/100*1200,item.y/100*700);ctx.rotate((Number(item.rotation)||0)*Math.PI/180);
-    const size=112*(Number(item.scale)||1),asset=assets.get(toy.image);
+    ctx.save();ctx.translate(item.x/100*width,item.y/100*boardHeight);ctx.rotate((Number(item.rotation)||0)*Math.PI/180);
+    const size=112*ratio*(Number(item.scale)||1),asset=assets.get(toy.image);
     if(asset){ctx.globalCompositeOperation='multiply';ctx.drawImage(asset,-size/2,-size/2,size,size)}
-    else{ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.round(72*(Number(item.scale)||1))}px "Segoe UI Emoji","Apple Color Emoji",sans-serif`;ctx.fillText(toy.emoji,0,0)}
+    else{ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.round(72*ratio*(Number(item.scale)||1))}px "Segoe UI Emoji","Apple Color Emoji",sans-serif`;ctx.fillText(toy.emoji,0,0)}
     ctx.restore();
   });
-  ctx.fillStyle='#40382d';ctx.textAlign='left';ctx.font='bold 24px "Microsoft YaHei",sans-serif';ctx.fillText('沙游心语 · 我的沙盘',28,726);
-  ctx.textAlign='right';ctx.font='18px "Microsoft YaHei",sans-serif';ctx.fillStyle='#6f6558';ctx.fillText('仅供自我探索，不构成心理诊断',1172,726);
+  if(footerHeight){
+    ctx.fillStyle='#40382d';ctx.textAlign='left';ctx.font='bold 24px "Microsoft YaHei",sans-serif';ctx.fillText('沙游心语 · 我的沙盘',28,boardHeight+26);
+    ctx.textAlign='right';ctx.font='18px "Microsoft YaHei",sans-serif';ctx.fillStyle='#6f6558';ctx.fillText('仅供自我探索，不构成心理诊断',width-28,boardHeight+26);
+  }
+  return canvas;
+}
+async function captureTrayImage(){
+  const canvas=await drawTrayCanvas(960,600);
+  return canvas.toDataURL('image/jpeg',.84);
+}
+async function exportTrayImage(){
+  if(!state.tray.length)return toast('沙盘还是空的');
+  const canvas=await drawTrayCanvas(1200,700,60);
   canvas.toBlob(blob=>{
     if(!blob)return toast('图片导出失败');
     const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`沙游心语-${Date.now()}.png`;link.click();
@@ -1138,20 +1149,37 @@ async function generateReport(){
   const r=buildReport();
   r.analysisFocus=focus;
 
-  // 尝试用独立大模型生成解读；失败则保留本地规则报告
-  if(CAP.aiReport){
-    try{
-      const res=await fetch('/api/report',{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({features:r.features})
-      });
-      if(res.status===401){window.dispatchEvent(new CustomEvent('shayu:unauthorized'));generating=false;return}
-      const d=await res.json();
-      if(d.ok&&d.text){r.aiText=d.text;r.source='llm';r.model=d.model;r.analysisFocus=d.aspects||focus}
-    }catch(e){/* 静默降级 */}
+  if(!CAP.aiReport){
+    generating=false;
+    renderReportFailure('服务器尚未配置大模型 API Key，无法进行沙盘图片分析。');
+    return;
+  }
+  try{
+    const imageDataUrl=await captureTrayImage();
+    const res=await fetch('/api/report',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({features:r.features,imageDataUrl})
+    });
+    if(res.status===401){window.dispatchEvent(new CustomEvent('shayu:unauthorized'));generating=false;return}
+    const d=await res.json();
+    if(!res.ok||!d.ok||!d.text)throw new Error(d.error||'大模型没有返回分析内容');
+    r.aiText=d.text;r.source='llm';r.model=d.model;r.analysisFocus=d.aspects||focus;r.visualAnalysis=true;
+  }catch(e){
+    generating=false;
+    renderReportFailure(e.message||'请稍后重试');
+    return;
   }
 
   state.report=r;save();generating=false;renderReport();
+}
+
+function renderReportFailure(message){
+  $('#report-area').innerHTML=`<div class="card report-wrap" style="padding:46px;text-align:center">
+    <h2>大模型视觉分析失败</h2>
+    <p style="color:var(--ink-2);margin:14px auto;max-width:620px">${escapeHtml(message)}</p>
+    <p style="color:var(--ink-3);font-size:13px">本次没有使用本地模板冒充 AI 报告。请确认服务器 AI_API_KEY、AI_BASE_URL 与支持图片输入的 AI_MODEL。</p>
+    <button class="btn btn-primary" style="margin-top:18px" onclick="regenerateReport()">重新生成</button>
+  </div>`;
 }
 
 function renderReport(){
@@ -1179,10 +1207,11 @@ function renderReport(){
 
     ${focusLabels.length?`<div class="report-focus"><span>完整报告已覆盖</span>${focusLabels.map(label=>`<b>${escapeHtml(label)}</b>`).join('')}</div>`:''}
 
-    ${r.aiText?`<div class="report-block ai-reading"><h2>🪶 AI 深度解读</h2>
+    ${r.aiText?`<div class="report-focus"><span>视觉依据</span><b>AI 已查看沙盘图片</b><b>已核对坐标与制作记录</b></div>
+    <div class="report-block ai-reading"><h2>🪶 AI 心理探索分析</h2>
       <div class="ai-report-text">${formatAiReport(r.aiText)}</div></div>`:''}
 
-    <div class="report-block"><h2>🧭 主题线索</h2><p>${escapeHtml(r.themeText)}</p></div>
+    ${r.source==='llm'?'':`<div class="report-block"><h2>🧭 主题线索</h2><p>${escapeHtml(r.themeText)}</p></div>
     <div class="report-block"><h2>🪞 沙具与位置</h2>
       <ul>${r.symbols.map(s=>`<li class="report-symbol">${reportSymbolHTML(s)}<span><b>${escapeHtml(s.name)}</b>（${s.x<50?'左':'右'}${s.y<50?'上':'下'}区）—— ${escapeHtml(s.meaning)}</span></li>`).join('')}</ul>
     </div>
@@ -1190,7 +1219,7 @@ function renderReport(){
     <div class="report-block"><h2>📐 空间与结构</h2><p>${escapeHtml(r.pos)}</p></div>
     <div class="report-block"><h2>💭 几个可以继续想的问题</h2>
       <ul>${r.questions.map(q=>`<li>${escapeHtml(q)}</li>`).join('')}</ul>
-    </div>
+    </div>`}
     <div class="disclaimer">
       ⚠️ 本报告依据最终画面的结构提供心理联想，不对你本人作确定判断，也无法观察完整制作过程。沙具的象征意义没有标准答案，
       你的感受与解释始终优先。本工具不是心理测评或医学诊断，也不能替代专业帮助；

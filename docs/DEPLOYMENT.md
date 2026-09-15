@@ -74,6 +74,8 @@ AI_MODEL=gpt-5.6-sol
 COMMUNITY_DATA_PATH=/app/data/local-store.json
 ```
 
+`AI_MODEL` 必须是该 OpenAI 兼容服务中支持 Chat Completions `image_url` 输入的视觉模型。若服务商不支持当前模型读取图片，页面会明确显示“大模型视觉分析失败”，服务器日志会保留上游错误。
+
 保护该文件：
 
 ```bash
@@ -180,7 +182,7 @@ https://212.129.255.239/api/capabilities
 - `sourceType` 为 `api`。
 - `oauthReady` 为 `true`。
 - `judgeLoginReady` 为 `true`（配置评委体验账号后）。
-- `aiReport` 为 `true`，`aiModel` 为 `gpt-5.6-sol`。
+- `aiReport` 为 `true`，`aiModel` 与 `.env.production` 中配置的视觉模型一致。
 - OAuth 登录后显示头像和用户中心。
 - 创作、关注列表和加载更多正常。
 - 未登录时只能看到登录门禁，不能进入沙盘或生成报告。
