@@ -1138,6 +1138,20 @@ function buildReport(){
 }
 
 let generating=false;
+async function readApiResponse(response){
+  const contentType=response.headers.get('content-type')||'';
+  const body=await response.text();
+  if(!contentType.toLowerCase().includes('application/json')){
+    const reason=response.status===504?'大模型分析超过网关等待时间'
+      :response.status===502?'网关暂时无法连接应用服务'
+      :response.status===413?'沙盘图片超过服务器上传限制'
+      :'服务器返回了非预期格式';
+    throw new Error(`${reason}（HTTP ${response.status}，响应不是 JSON）`);
+  }
+  try{return JSON.parse(body)}catch{
+    throw new Error(`服务器返回的 JSON 无法解析（HTTP ${response.status}）`);
+  }
+}
 async function generateReport(){
   if(!CAP.loggedIn){$('#onboard').classList.add('open');toast('请先登录知乎，再生成沙盘报告');return}
   if(generating)return;generating=true;
@@ -1161,7 +1175,7 @@ async function generateReport(){
       body:JSON.stringify({features:r.features,imageDataUrl})
     });
     if(res.status===401){window.dispatchEvent(new CustomEvent('shayu:unauthorized'));generating=false;return}
-    const d=await res.json();
+    const d=await readApiResponse(res);
     if(!res.ok||!d.ok||!d.text)throw new Error(d.error||'大模型没有返回分析内容');
     r.aiText=d.text;r.source='llm';r.model=d.model;r.analysisFocus=d.aspects||focus;r.visualAnalysis=true;
   }catch(e){

@@ -10,6 +10,9 @@ const server = fs.readFileSync(new URL('../server/index.js', import.meta.url), '
 const loginHtml = fs.readFileSync(new URL('../public/login.html', import.meta.url), 'utf8');
 const loginJs = fs.readFileSync(new URL('../public/js/login.js', import.meta.url), 'utf8');
 const state = fs.readFileSync(new URL('../public/js/state.js', import.meta.url), 'utf8');
+const aiAnalysis = fs.readFileSync(new URL('../server/ai-analysis.js', import.meta.url), 'utf8');
+const nginxHttp = fs.readFileSync(new URL('../deploy/nginx/shayu-http.conf', import.meta.url), 'utf8');
+const nginxHttps = fs.readFileSync(new URL('../deploy/nginx/shayu-https.conf', import.meta.url), 'utf8');
 
 test('publish button calls the split community module', () => {
   assert.match(html, /onclick="ShaYuCommunity\.confirmPublish\(\)"/);
@@ -87,4 +90,15 @@ test('free report sends a rendered sandtray image and never silently disguises A
   assert.match(app, /大模型视觉分析失败/);
   assert.match(app, /r\.visualAnalysis=true/);
   assert.match(app, /state\.report\?\.visualAnalysis/);
+});
+
+test('visual report tolerates slow models and explains non-JSON proxy errors', () => {
+  assert.match(aiAnalysis, /timeout\s*=\s*150_000/);
+  assert.match(nginxHttp, /proxy_read_timeout\s+180s;/);
+  assert.match(nginxHttps, /proxy_read_timeout\s+180s;/);
+  assert.match(nginxHttp, /proxy_send_timeout\s+180s;/);
+  assert.match(nginxHttps, /proxy_send_timeout\s+180s;/);
+  assert.match(app, /async function readApiResponse\(response\)/);
+  assert.match(app, /HTTP \$\{response\.status\}/);
+  assert.match(app, /响应不是 JSON/);
 });

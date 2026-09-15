@@ -78,7 +78,7 @@ ${safeFeatures}
   ];
 }
 
-export function createAnalysisClient({ apiKey, baseURL, timeout = 60_000 }) {
+export function createAnalysisClient({ apiKey, baseURL, timeout = 150_000 }) {
   if (!apiKey) return null;
   return new OpenAI({ apiKey, baseURL, timeout, maxRetries: 1 });
 }
