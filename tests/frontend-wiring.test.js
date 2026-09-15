@@ -64,3 +64,12 @@ test('daily hot topic is a parallel homepage mode that reuses the tray editor', 
   assert.match(state, /challengeDraft:\s*null/);
   assert.match(state, /choiceProfileCache:\s*null/);
 });
+
+test('challenge results reuse community publishing and optional archetype matching', () => {
+  assert.match(html, /id="publish-archetypes"/);
+  assert.match(community, /challengeResult/);
+  assert.match(community, /publicArchetypes/);
+  assert.match(community, /archetypeIds/);
+  assert.match(community, /match-archetypes/);
+  assert.match(community, /近期选择方式，会随新记录变化，不是心理诊断/);
+});

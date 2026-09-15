@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import express from 'express';
+import { computeArchetypes } from './archetypes.js';
 
 const MAX_TRAY_ITEMS = 100;
 const MAX_SUMMARY_LENGTH = 4000;
@@ -97,7 +98,7 @@ function trayProfile(tray) {
   return { categories, regions, toys: tray.map(item => item.toyId), size: tray.length };
 }
 
-function matchScore(query, work) {
+function matchScore(query, work, { queryArchetypes = [], workArchetypes = [] } = {}) {
   const left = trayProfile(query.tray);
   const right = trayProfile(work.tray);
   const categoryScore = cosine(left.categories, right.categories);
@@ -105,7 +106,7 @@ function matchScore(query, work) {
   const spatialScore = cosine(left.regions, right.regions);
   const densityScore = 1 - Math.abs(left.size - right.size) / Math.max(left.size, right.size, 1);
   const aspectScore = overlap(query.aspects, work.aspects || []);
-  const score = Math.round(100 * (
+  const structuralScore = Math.round(100 * (
     categoryScore * 0.45 + toyScore * 0.2 + spatialScore * 0.15
     + densityScore * 0.1 + aspectScore * 0.1
   ));
@@ -120,10 +121,17 @@ function matchScore(query, work) {
   const sharedAspects = query.aspects.filter(aspect => (work.aspects || []).includes(aspect));
   if (sharedAspects.length) reasons.push('关注的沙盘分析方向相似');
   if (!reasons.length) reasons.push('沙具数量与画面节奏有可比较之处');
-  return { score, reasons };
+  if (!queryArchetypes.length) return { score: structuralScore, reasons };
+  const archetypeScore = overlap(queryArchetypes, workArchetypes);
+  if (archetypeScore) reasons.push('主动公开的选择原型相近');
+  return {
+    score: Math.round(structuralScore * 0.85 + archetypeScore * 15),
+    reasons,
+    scoreBreakdown: { structural: structuralScore, archetype: Math.round(archetypeScore * 100) },
+  };
 }
 
-function present(work, viewerId, { detail = false } = {}) {
+function present(work, viewerId, { detail = false, publicArchetypes = [] } = {}) {
   const mine = Boolean(viewerId && work.ownerId === viewerId);
   const author = work.anonymous && !mine
     ? { nick: '一位旅人', avatar: null }
@@ -143,6 +151,9 @@ function present(work, viewerId, { detail = false } = {}) {
     liked: Boolean(viewerId && work.likedBy.includes(viewerId)),
     collected: Boolean(viewerId && work.collectedBy.includes(viewerId)),
     commentCount: work.comments.length,
+    challenge: work.challenge || null,
+    mirrorCard: work.mirrorCard || null,
+    publicArchetypes,
   };
   if (detail) {
     result.comments = work.comments.map(comment => ({
@@ -159,6 +170,31 @@ function present(work, viewerId, { detail = false } = {}) {
 export class CommunityService {
   constructor(store) {
     this.store = store;
+  }
+
+  availableArchetypes(ownerId, { matchOnly = false } = {}) {
+    return this.store.read(data => {
+      const confirmations = data.challengeRuns
+        .filter(run => run.ownerId === ownerId)
+        .flatMap(run => run.confirmations || []);
+      const settings = data.choiceProfiles.find(profile => profile.ownerId === ownerId)?.settings || {};
+      return computeArchetypes(confirmations).filter(archetype => {
+        const setting = settings[archetype.id];
+        return setting?.isPublic && (!matchOnly || setting.matchEligible);
+      });
+    });
+  }
+
+  selectedArchetypes(ownerId, ids, options) {
+    const selected = new Set(Array.isArray(ids) ? ids.filter(id => typeof id === 'string').slice(0, 8) : []);
+    return this.availableArchetypes(ownerId, options).filter(archetype => selected.has(archetype.id));
+  }
+
+  presentWork(work, viewerId, options = {}) {
+    return present(work, viewerId, {
+      ...options,
+      publicArchetypes: this.selectedArchetypes(work.ownerId, work.archetypeIds),
+    });
   }
 
   createWork(user, input) {
@@ -187,9 +223,19 @@ export class CommunityService {
       likedBy: [],
       collectedBy: [],
       comments: [],
+      challenge: input?.challenge && typeof input.challenge.id === 'string'
+        ? { id: cleanText(input.challenge.id, 100), title: cleanText(input.challenge.title, 80) }
+        : null,
+      mirrorCard: input?.mirrorCard && typeof input.mirrorCard.title === 'string'
+        ? {
+            title: cleanText(input.mirrorCard.title, 80),
+            confirmedText: cleanText(input.mirrorCard.confirmedText, 500),
+          }
+        : null,
+      archetypeIds: this.selectedArchetypes(user.id, input?.archetypeIds).map(item => item.id),
     };
     this.store.update(data => data.works.push(work));
-    return present(work, user.id, { detail: true });
+    return this.presentWork(work, user.id, { detail: true });
   }
 
   listWorks(viewerId, { filter = 'all', cursor = '', limit = 10 } = {}) {
@@ -203,7 +249,7 @@ export class CommunityService {
       const start = cursor ? Math.max(works.findIndex(work => work.id === cursor) + 1, 0) : 0;
       const page = works.slice(start, start + pageSize);
       return {
-        items: page.map(work => present(work, viewerId)),
+        items: page.map(work => this.presentWork(work, viewerId)),
         nextCursor: start + page.length < works.length ? page.at(-1)?.id || null : null,
       };
     });
@@ -213,7 +259,7 @@ export class CommunityService {
     return this.store.read(data => {
       const work = data.works.find(item => item.id === id);
       if (!work || !canView(data, work, viewerId)) throw httpError(404, '没有找到这个沙盘');
-      return present(work, viewerId, { detail: true });
+      return this.presentWork(work, viewerId, { detail: true });
     });
   }
 
@@ -226,7 +272,7 @@ export class CommunityService {
       const index = list.indexOf(viewerId);
       if (index >= 0) list.splice(index, 1);
       else list.push(viewerId);
-      return present(work, viewerId, { detail: true });
+      return this.presentWork(work, viewerId, { detail: true });
     });
   }
 
@@ -244,7 +290,7 @@ export class CommunityService {
         text,
         createdAt: Date.now(),
       });
-      return present(work, user.id, { detail: true });
+      return this.presentWork(work, user.id, { detail: true });
     });
   }
 
@@ -266,10 +312,20 @@ export class CommunityService {
       tray: normalizeTray(input?.tray),
       aspects: Array.isArray(input?.aspects) ? input.aspects.filter(value => typeof value === 'string').slice(0, 4) : [],
     };
+    const queryArchetypes = this.selectedArchetypes(viewerId, input?.archetypeIds).map(item => item.id);
     const pageSize = Math.min(Math.max(Number.parseInt(limit, 10) || 6, 1), 10);
     return this.store.read(data => data.works
       .filter(work => work.visibility === 'public' && work.ownerId !== viewerId)
-      .map(work => ({ work: present(work, viewerId), ...matchScore(query, work) }))
+      .map(work => {
+        const workArchetypes = this.selectedArchetypes(work.ownerId, work.archetypeIds, { matchOnly: true });
+        return {
+          work: this.presentWork(work, viewerId),
+          ...matchScore(query, work, {
+            queryArchetypes,
+            workArchetypes: workArchetypes.map(item => item.id),
+          }),
+        };
+      })
       .sort((a, b) => b.score - a.score || b.work.createdAt - a.work.createdAt)
       .slice(0, pageSize));
   }

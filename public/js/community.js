@@ -62,6 +62,18 @@
     return value === 'public' ? '公开' : value === 'friends' ? '仅好友' : '仅自己';
   }
 
+  function archetypeTags(post) {
+    const tags = Array.isArray(post.publicArchetypes) ? post.publicArchetypes : [];
+    return tags.length ? `<div class="public-archetypes">${tags.map(item =>
+      `<span>✦ ${bridge.escapeHtml(item.name)}</span>`).join('')}<small>近期选择方式，会随新记录变化，不是心理诊断。</small></div>` : '';
+  }
+
+  function challengeBadge(post) {
+    return post.challenge?.title
+      ? `<span class="challenge-work-badge">每日热题 · ${bridge.escapeHtml(post.challenge.title)}</span>`
+      : '';
+  }
+
   function renderFeed() {
     const root = $('#feed');
     if (!root) return;
@@ -70,6 +82,7 @@
         <div class="post-mini" onclick="ShaYuCommunity.openPost('${post.id}')">${miniTrayHTML(post.tray)}</div>
         <div class="post-body">
           <div class="post-title" onclick="ShaYuCommunity.openPost('${post.id}')">${bridge.escapeHtml(post.title)}</div>
+          ${challengeBadge(post)}
           <div class="post-meta">
             <span>${post.anonymous && !post.mine ? '👤' : '🧑'} ${bridge.escapeHtml(post.author?.nick || '知乎用户')}</span>
             <span>${bridge.fmtTime(post.createdAt)}</span>
@@ -77,6 +90,7 @@
             ${post.mine ? '<span class="pill">我的</span>' : ''}
           </div>
           <div class="post-summary">${bridge.escapeHtml(post.summary)}</div>
+          ${archetypeTags(post)}
           <div class="post-foot">
             <button class="${post.liked ? 'liked' : ''}" onclick="ShaYuCommunity.toggleLike('${post.id}')">❤️ ${post.likes}</button>
             <button class="${post.collected ? 'collected' : ''}" onclick="ShaYuCommunity.toggleCollect('${post.id}')">⭐ ${post.collects}</button>
@@ -138,6 +152,9 @@
             <div class="post-meta"><span>${post.anonymous && !post.mine ? '👤' : '🧑'} ${bridge.escapeHtml(post.author?.nick || '知乎用户')}</span><span>${bridge.fmtTime(post.createdAt)}</span>
             <span class="privacy-tag ${post.visibility}">${visibilityLabel(post.visibility)}</span></div>
             <p>${bridge.escapeHtml(post.summary)}</p>
+            ${challengeBadge(post)}
+            ${post.mirrorCard?.confirmedText ? `<blockquote class="mirror-card-quote">${bridge.escapeHtml(post.mirrorCard.confirmedText)}</blockquote>` : ''}
+            ${archetypeTags(post)}
           </div>
         </div>
         <div class="post-detail-actions">
@@ -196,12 +213,30 @@
   async function openMatcher() {
     const state = bridge.getState();
     if (!state.tray?.length) return bridge.toast('先完成一座自己的沙盘，才能寻找共鸣');
-    $('#match-modal-body').innerHTML = '<div class="resonance-loading"><span>🫧</span><p>正在比较沙具选择、空间结构与关注方向…</p></div>';
     $('#match-modal').classList.add('open');
+    try {
+      const profile = await bridge.api.choiceProfile();
+      const available = (profile.archetypes || []).filter(item => item.isPublic);
+      $('#match-modal-body').innerHTML = `<div class="resonance-intro"><span>RESONANCE MAP</span><h2>寻找共鸣伙伴</h2><p>默认只比较沙具和布局。你也可以主动选择公开原型作为本次匹配信号。</p></div>
+        <div class="match-archetypes" id="match-archetypes">
+          ${available.length ? available.map(item => `<label><input type="checkbox" value="${item.id}"> ${bridge.escapeHtml(item.name)}</label>`).join('') : '<small>还没有已公开的选择原型，本次将只比较作品结构。</small>'}
+          <small>标签默认不参与；启用后也不代表性格或心理适配度。</small>
+        </div>
+        <button class="btn btn-primary" onclick="ShaYuCommunity.runMatch()">开始比较</button>`;
+    } catch (error) {
+      $('#match-modal-body').innerHTML = `<div class="community-empty">${bridge.escapeHtml(error.message || '暂时无法寻找共鸣')}</div>`;
+    }
+  }
+
+  async function runMatch() {
+    const state = bridge.getState();
+    const archetypeIds = [...document.querySelectorAll('#match-archetypes input:checked')].map(input => input.value);
+    $('#match-modal-body').innerHTML = '<div class="resonance-loading"><span>🫧</span><p>正在比较沙具选择、空间结构与关注方向…</p></div>';
     try {
       const data = await bridge.api.matchCommunityWorks({
         tray: state.tray,
         aspects: state.report?.analysisFocus || [],
+        archetypeIds,
       });
       renderMatches(Array.isArray(data.items) ? data.items : []);
     } catch (error) {
@@ -218,6 +253,7 @@
           <div class="resonance-copy">
             <span class="resonance-author">${match.work.anonymous ? '👤' : '🧑'} ${bridge.escapeHtml(match.work.author?.nick || '知乎用户')}</span>
             <h3>${bridge.escapeHtml(match.work.title)}</h3>
+            ${archetypeTags(match.work)}
             <div class="resonance-reasons">${match.reasons.map(reason => `<span>${bridge.escapeHtml(reason)}</span>`).join('')}</div>
             <div class="resonance-actions">
               <button class="btn btn-ghost btn-sm" onclick="ShaYuCommunity.openPost('${match.work.id}')">看看作品</button>
@@ -287,13 +323,20 @@
     } catch (error) { bridge.toast(error.message || '处理申请失败'); }
   }
 
-  function openPublish() {
+  async function openPublish() {
     const state = bridge.getState();
     if (!bridge.getCapabilities().loggedIn) return bridge.toast('请先登录知乎');
     if (!state.report) return bridge.toast('先生成沙盘报告');
     $('#publish-mini').innerHTML = miniTrayHTML(state.tray);
     $('#publish-summary').textContent = state.report.aiText || `${state.report.themeText} ${state.report.atmos}`;
     $('#publish-title').value = '';
+    const archetypeRoot = $('#publish-archetypes');
+    const profile = await bridge.api.choiceProfile().catch(() => ({ archetypes: [] }));
+    const publicArchetypes = (profile.archetypes || []).filter(item => item.isPublic);
+    archetypeRoot.hidden = !state.challengeResult || !publicArchetypes.length;
+    archetypeRoot.innerHTML = publicArchetypes.length ? `<label>随作品公开的选择原型（可选）</label>
+      <div class="publish-archetype-options">${publicArchetypes.map(item => `<label><input type="checkbox" value="${item.id}"> ${bridge.escapeHtml(item.name)}</label>`).join('')}</div>
+      <small>只会公开你在这里勾选的标签。</small>` : '';
     $('#publish-modal').classList.add('open');
   }
 
@@ -301,6 +344,8 @@
     const state = bridge.getState();
     const title = $('#publish-title').value.trim() || state.report.title;
     const anonymous = $('#anon-switch').classList.contains('on');
+    const challengeResult = state.challengeResult || null;
+    const archetypeIds = [...document.querySelectorAll('#publish-archetypes input:checked')].map(input => input.value);
     try {
       await bridge.api.createCommunityWork({
         title,
@@ -309,6 +354,9 @@
         visibility: publishVisibility,
         anonymous,
         aspects: state.report?.analysisFocus || [],
+        challenge: challengeResult?.challenge || null,
+        mirrorCard: challengeResult?.mirrorCard || null,
+        archetypeIds,
       });
       bridge.closeModal('publish-modal');
       bridge.toast(publishVisibility === 'public' ? '已发布，其他玩家现在可以看见' : '作品已安全保存');
@@ -358,6 +406,7 @@
     confirmPublish,
     migrateLegacyPosts,
     openMatcher,
+    runMatch,
     sendFriendRequest,
     openFriendRequests,
     respondFriendRequest,

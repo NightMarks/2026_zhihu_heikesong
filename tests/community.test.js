@@ -9,7 +9,8 @@ import { createJsonStore } from '../server/store.js';
 function fixture(t) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'shayu-community-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
-  const service = new CommunityService(createJsonStore(path.join(directory, 'store.json')));
+  const store = createJsonStore(path.join(directory, 'store.json'));
+  const service = new CommunityService(store);
   const owner = { id: 'owner-1', nick: '沙盘主人', avatar: null };
   const visitor = { id: 'visitor-1', nick: '同行者', avatar: null };
   const input = {
@@ -19,7 +20,24 @@ function fixture(t) {
     anonymous: false,
     tray: [{ toyId: 'bridge', x: 50, y: 60 }],
   };
-  return { service, owner, visitor, input };
+  return { store, service, owner, visitor, input };
+}
+
+function seedArchetype(store, ownerId, { isPublic = true, matchEligible = true } = {}) {
+  store.update(data => {
+    data.challengeRuns.push({
+      ownerId,
+      confirmations: [
+        { observationId: `${ownerId}-1`, archetypeId: 'boundary-keeper', dimension: 'change', result: 'confirmed' },
+        { observationId: `${ownerId}-2`, archetypeId: 'boundary-keeper', dimension: 'boundary', result: 'confirmed' },
+        { observationId: `${ownerId}-3`, archetypeId: 'boundary-keeper', dimension: 'change', result: 'confirmed' },
+      ],
+    });
+    data.choiceProfiles.push({
+      ownerId,
+      settings: { 'boundary-keeper': { isPublic, matchEligible } },
+    });
+  });
 }
 
 function createLegacyStoreFile(t, data) {
@@ -131,6 +149,54 @@ test('sandtray matching ranks structurally similar public works first', t => {
   assert.equal(matches[0].work.id, close.id);
   assert.ok(matches[0].score > matches[1].score);
   assert.ok(matches[0].reasons.some(reason => reason.includes('象征类')));
+
+  const withoutTags = service.findMatches(seeker.id, {
+    tray: [
+      { toyId: 'bridge', x: 50, y: 60 },
+      { toyId: 'key', x: 65, y: 48 },
+      { toyId: 'castle', x: 28, y: 55 },
+    ],
+    aspects: ['relationships', 'change'],
+    archetypeIds: [],
+  });
+  assert.deepEqual(withoutTags.map(match => match.score), matches.map(match => match.score));
+});
+
+test('challenge works expose only archetypes the owner keeps public', t => {
+  const { store, service, owner, input } = fixture(t);
+  seedArchetype(store, owner.id);
+  const work = service.createWork(owner, {
+    ...input,
+    challenge: { id: 'daily-1', title: '为未知留一个位置' },
+    mirrorCard: { title: '先留一条退路', confirmedText: '我会先确认边界。' },
+    archetypeIds: ['boundary-keeper'],
+  });
+
+  assert.equal(work.challenge.id, 'daily-1');
+  assert.deepEqual(work.publicArchetypes.map(item => item.id), ['boundary-keeper']);
+
+  store.update(data => {
+    data.choiceProfiles[0].settings['boundary-keeper'] = { isPublic: false, matchEligible: false };
+  });
+  assert.deepEqual(service.getWork(work.id, owner.id).publicArchetypes, []);
+});
+
+test('opt-in archetypes add a separate matching reason', t => {
+  const { store, service, input } = fixture(t);
+  const owner = { id: 'tag-owner', nick: '守望者' };
+  const seeker = { id: 'tag-seeker', nick: '寻找者' };
+  seedArchetype(store, owner.id);
+  seedArchetype(store, seeker.id);
+  service.createWork(owner, { ...input, archetypeIds: ['boundary-keeper'] });
+
+  const [match] = service.findMatches(seeker.id, {
+    tray: input.tray,
+    aspects: [],
+    archetypeIds: ['boundary-keeper'],
+  });
+
+  assert.ok(match.reasons.includes('主动公开的选择原型相近'));
+  assert.equal(match.scoreBreakdown.archetype, 100);
 });
 
 test('accepted friend requests unlock friends-only works', t => {
