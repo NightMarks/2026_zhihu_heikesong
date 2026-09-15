@@ -32,6 +32,8 @@ import {
 import { CommunityService, createCommunityRouter } from './community.js';
 import { createJsonStore } from './store.js';
 import { createJudgeAuthRouter, getJudgeData, judgeAuthReady } from './judge-auth.js';
+import { DailyChallengeService } from './challenges.js';
+import { ChallengeRunService, createChallengeRunRouter } from './challenge-runs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -121,6 +123,8 @@ const analysisClient = createAnalysisClient({
   baseURL: cfg.aiBaseUrl,
 });
 const communityService = new CommunityService(createJsonStore(cfg.communityDataPath));
+const dailyChallengeService = new DailyChallengeService({ store: communityService.store });
+const challengeRunService = new ChallengeRunService({ store: communityService.store });
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '16kb' }));
@@ -180,6 +184,10 @@ app.use('/api/community', (req, res, next) => {
 });
 app.use('/api/community', createCommunityRouter({
   service: communityService,
+  getUser: (req, res) => session(req, res).user || null,
+}));
+app.use('/api/challenge-runs', createChallengeRunRouter({
+  service: challengeRunService,
   getUser: (req, res) => session(req, res).user || null,
 }));
 
@@ -404,6 +412,45 @@ app.get('/api/hot', needSource, async (req, res) => {
       : await cli.cliHot(+req.query.n || 30);
     res.json({ items: d.Items || [] });
   } catch (e) { res.status(502).json({ error: e.message, code: e.code }); }
+});
+
+function chinaDate(now = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+}
+
+function hotItemTitle(item) {
+  return item?.title || item?.Title || item?.Target?.Title || item?.Target?.Question?.Title || '';
+}
+
+async function loadHotItemsSafely() {
+  if (SOURCE === 'none') return [];
+  try {
+    const data = SOURCE === 'api' ? await zh.hotList(cfg.secret, 30) : await cli.cliHot(30);
+    return (data.Items || []).map(item => ({ title: hotItemTitle(item) })).filter(item => item.title);
+  } catch (error) {
+    console.warn('[daily-challenge] 知乎热榜读取失败，使用内置命题：', error?.message || error);
+    return [];
+  }
+}
+
+app.get('/api/challenges/daily', async (req, res) => {
+  const s = session(req, res);
+  if (!s.user?.id) return res.status(401).json({ error: '请先登录知乎，再进入每日热题' });
+  try {
+    const challenge = await dailyChallengeService.getDaily({
+      date: chinaDate(),
+      hotItems: await loadHotItemsSafely(),
+    });
+    return res.json(challenge);
+  } catch (error) {
+    console.error('[daily-challenge]', error?.message || error);
+    return res.status(503).json({ error: '每日热题暂时不可用' });
+  }
 });
 
 /** 读取当前登录用户的创作 —— 用于"互动回链校验" */

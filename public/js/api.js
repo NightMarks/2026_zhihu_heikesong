@@ -55,5 +55,42 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     }),
+    dailyChallenge: () => request('/api/challenges/daily'),
+    createChallengeRun: payload => request('/api/challenge-runs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+    saveChallengeRound: (runId, roundId, payload) => request(
+      `/api/challenge-runs/${encodeURIComponent(runId)}/rounds/${encodeURIComponent(roundId)}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      },
+    ),
+    createChallengeReflection: runId => request(`/api/challenge-runs/${encodeURIComponent(runId)}/reflection`, {
+      method: 'POST',
+    }),
+    confirmChoiceObservation: (runId, payload) => request(
+      `/api/challenge-runs/${encodeURIComponent(runId)}/confirmations`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      },
+    ),
+    choiceProfile: () => request('/api/challenge-runs/profile'),
+    updateArchetypeSettings: (id, payload) => request(
+      `/api/challenge-runs/profile/archetypes/${encodeURIComponent(id)}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      },
+    ),
+    deleteChoiceRecord: id => request(`/api/challenge-runs/profile/records/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
   });
 })(window);

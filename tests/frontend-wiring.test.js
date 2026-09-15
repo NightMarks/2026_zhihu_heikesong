@@ -5,6 +5,8 @@ import fs from 'node:fs';
 const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 const app = fs.readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
 const community = fs.readFileSync(new URL('../public/js/community.js', import.meta.url), 'utf8');
+const api = fs.readFileSync(new URL('../public/js/api.js', import.meta.url), 'utf8');
+const server = fs.readFileSync(new URL('../server/index.js', import.meta.url), 'utf8');
 const loginHtml = fs.readFileSync(new URL('../public/login.html', import.meta.url), 'utf8');
 const loginJs = fs.readFileSync(new URL('../public/js/login.js', import.meta.url), 'utf8');
 
@@ -35,4 +37,16 @@ test('journey gate opens a dedicated OAuth and judge login page', () => {
   assert.doesNotMatch(loginHtml, /JUDGE_LOGIN_PASSWORD/);
   assert.match(loginJs, /\/auth\/judge/);
   assert.match(loginJs, /judgeLoginReady/);
+});
+
+test('daily challenge routes are exposed to the browser client', () => {
+  assert.match(server, /app\.get\('\/api\/challenges\/daily'/);
+  assert.match(server, /app\.use\('\/api\/challenge-runs'/);
+  assert.match(api, /dailyChallenge:\s*\(\)\s*=>\s*request\('\/api\/challenges\/daily'\)/);
+  assert.match(api, /createChallengeRun:/);
+  assert.match(api, /saveChallengeRound:/);
+  assert.match(api, /createChallengeReflection:/);
+  assert.match(api, /confirmChoiceObservation:/);
+  assert.match(api, /choiceProfile:/);
+  assert.match(api, /updateArchetypeSettings:/);
 });
