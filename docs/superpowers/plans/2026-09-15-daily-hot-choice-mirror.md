@@ -666,7 +666,7 @@ git add README.md docs/DEMO.md docs/superpowers/plans/2026-09-15-daily-hot-choic
 git commit -m "docs(game): document daily choice mirror mode"
 ```
 
-- [ ] **Step 6: Push and verify GitHub state**
+- [x] **Step 6: Push and verify GitHub state**
 
 Run: `git push origin main`  
 Expected: `main` advances successfully and `git status -sb` reports `main...origin/main` with a clean worktree.
