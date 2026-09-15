@@ -93,7 +93,7 @@ const CATEGORIES = [
       {id:'tree',name:'连根拔起的大树',emoji:'🌳',meaning:'根系外露倒伏的古树；象征失去归属感、经历重大变故后的动荡。'},
       {id:'flower',name:'石缝野花',emoji:'🌸',meaning:'顶开巨石绽放的黄花；象征在巨大压力下依然坚韧不拔的生命力。'},
       {id:'mountain',name:'冰封火山',emoji:'⛰️',meaning:'冰块包裹着暗红火山口；代表被极度压抑的愤怒、随时可能爆发的情绪。'},
-      {id:'water',name:'深渊水潭',emoji:'🌊',meaning:'漆黑不见底的树脂水坑；投射对未知潜意识的恐惧、深不可测的抑郁。'},
+      {id:'water',name:'顺流清泉',emoji:'🌊',meaning:'动态透明的流觞曲水；隐喻情绪的自然流动、疏导与澄澈的内心。'},
       {id:'sun',name:'破晓晨星',emoji:'☀️',meaning:'沙地上升起的半个暖色光球；代表熬过黑暗后的新起点与希望。'},
       {id:'moon',name:'深渊水潭',emoji:'🌙',meaning:'漆黑不见底的树脂水坑；投射对未知潜意识的恐惧、深不可测的抑郁。'},
       {id:'rock',name:'干涸河床',emoji:'🪨',meaning:'严重龟裂的泥土；隐喻情感枯竭、职业倦怠（Burnout）与麻木。'}
