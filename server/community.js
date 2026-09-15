@@ -5,14 +5,15 @@ const MAX_TRAY_ITEMS = 100;
 const MAX_SUMMARY_LENGTH = 4000;
 const MAX_COMMENT_LENGTH = 300;
 const CATEGORY_TOYS = Object.freeze({
-  people: ['child', 'student', 'worker', 'doctor', 'police', 'elder', 'mystery'],
-  animal: ['cat', 'dog', 'bird', 'fish', 'horse', 'turtle', 'butterfly'],
-  building: ['thatch', 'stone', 'cabin', 'flat', 'tower', 'ruin', 'castle'],
-  nature: ['tree', 'flower', 'mountain', 'water', 'sun', 'moon', 'rock'],
-  traffic: ['bike', 'car', 'train', 'boat', 'plane'],
-  symbol: ['key', 'door', 'bridge', 'mirror'],
-  fantasy: ['fairy', 'unicorn', 'wizard', 'crystal', 'star', 'rainbow'],
-  monster: ['sword', 'shield', 'dragon', 'beast'],
+  people: ['child', 'climber', 'student', 'worker', 'doctor', 'family', 'masked', 'backToBack', 'police', 'elder', 'mystery', 'meltingFigure'],
+  animal: ['eagle', 'cat', 'dog', 'motherDeer', 'lion', 'bird', 'fish', 'cagedBird', 'horse', 'turtle', 'butterfly', 'ouroboros'],
+  building: ['stoneBridge', 'halfOpenGate', 'thatch', 'stone', 'cabin', 'openTent', 'flat', 'tower', 'ruin', 'castle', 'abandonedPark', 'sealedLighthouse'],
+  nature: ['sproutingWood', 'glowingOasis', 'tree', 'flower', 'mountain', 'fertileSoil', 'water', 'sun', 'moon', 'rock', 'wiltedRose', 'storm'],
+  traffic: ['bike', 'balloon', 'car', 'train', 'boat', 'glider', 'brokenBoat', 'plane', 'tracklessTank', 'anchoredSubmarine', 'overloadedPickup', 'brokenBridgeBus'],
+  // door / bridge are legacy IDs kept so older published works still match as symbols.
+  symbol: ['goldenFeather', 'key', 'balanceScale', 'mirror', 'wheat', 'treasureChest', 'burningIce', 'brokenHourglass', 'rustAnchor', 'redKnot', 'lockedBlackBox', 'dustyCrown', 'door', 'bridge'],
+  fantasy: ['fairy', 'unicorn', 'wingedBook', 'wizard', 'crystal', 'star', 'moonMirror', 'clockworkDragon', 'sleepingGargoyle', 'brokenCrystalShoe', 'mirageCastle', 'rainbow'],
+  monster: ['sword', 'guardianLion', 'barrierAxe', 'shield', 'thornSword', 'healingStaff', 'inwardDagger', 'smilingSpider', 'blackSlime', 'thornChain', 'dragon', 'beast'],
 });
 const CATEGORY_LABELS = Object.freeze({
   people: '人物类', animal: '动物类', building: '建筑类', nature: '自然类',

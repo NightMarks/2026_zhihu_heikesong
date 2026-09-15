@@ -25,12 +25,17 @@ const CATEGORIES = [
     ],
     toys:[
       {id:'child',name:'抱膝微光童',emoji:'👶',meaning:'投射创伤经历、极度缺乏安全感与脆弱。'},
+      {id:'climber',name:'攀登者',emoji:'🧗',meaning:'奋力向上举起双手的木头人；代表成就动机、跨越困难的决心。'},
       {id:'student',name:'吹蒲公英的孩童',emoji:'🧑‍🎓',meaning:'仰头吹拂的快乐小孩；投射被治愈的内在小孩、纯真与希望散播。'},
       {id:'worker',name:'负石行者',emoji:'👷',meaning:'弯腰背负巨石的剪影；代表过重的责任感、被生活压垮的耗竭。'},
       {id:'doctor',name:'拥抱的双人',emoji:'🧑‍⚕️',meaning:'紧紧相拥的陶土人；隐喻安全的依恋、亲密关系与接纳。'},
+      {id:'family',name:'携手一家三口',emoji:'👪',meaning:'牵手并肩前行的木雕；代表原生家庭的温暖、和谐与支持系统。'},
+      {id:'masked',name:'半脸面具人',emoji:'🎭',meaning:'手持笑脸面具的无脸人；隐喻社交疲惫、讨好型人格与伪装。'},
+      {id:'backToBack',name:'背靠背双子',emoji:'🧑‍🤝‍🧑',meaning:'相依却看向反方向；代表内耗、亲密关系中的疏离与冷暴力。'},
       {id:'police',name:'提线木偶',emoji:'👮',meaning:'被杂乱细线悬吊的木偶；象征被控制的人生、宿命感与失去自主权。'},
       {id:'elder',name:'冥想者',emoji:'🧓',meaning:'盘腿闭目的发光半透明人；象征内心的平静、自我觉察与整合。'},
-      {id:'mystery',name:'提灯探路人',emoji:'🧙',meaning:'举着暖光小灯的行者；代表在迷茫中自我指引，或生活中的“贵人”。'}
+      {id:'mystery',name:'提灯探路人',emoji:'🧙',meaning:'举着暖光小灯的行者；代表在迷茫中自我指引，或生活中的“贵人”。'},
+      {id:'meltingFigure',name:'融化陶土人',emoji:'🫠',meaning:'五官模糊、身体向下流淌；隐喻身份认同危机、边界感丧失。'}
     ]
   },
   {
@@ -46,18 +51,23 @@ const CATEGORIES = [
       '与自然相处 动物给人的启发',
     ],
     toys:[
+      {id:'eagle',name:'展翅雄鹰',emoji:'🦅',meaning:'腾空而起的木雕鹰；象征自由、高远的目标与敏锐的洞察力。'},
       {id:'cat',name:'盘踞黑豹',emoji:'🐱',meaning:'肌肉紧绷的黑曜石豹子；代表压抑的攻击性、过度警觉与敌意。'},
       {id:'dog',name:'炸毛流浪猫',emoji:'🐶',meaning:'弓背哈气的粗糙陶土猫；投射极度的防御、对外界的不信任。'},
+      {id:'motherDeer',name:'哺乳母鹿',emoji:'🦌',meaning:'温柔注视幼崽的母鹿；代表充沛的滋养能力、母性与温和的力量。'},
+      {id:'lion',name:'昂首雄狮',emoji:'🦁',meaning:'鬃毛飘逸的骄傲狮子；象征自信、勇气以及健康的领导欲。'},
       {id:'bird',name:'衔枝白鸽',emoji:'🐦',meaning:'嘴衔绿枝的白瓷鸽子；代表内心的和平、争吵后的和解与疗愈。'},
       {id:'fish',name:'跃水海豚',emoji:'🐟',meaning:'呈现完美抛物线的海豚；投射纯粹的快乐、活力与灵动的直觉。'},
+      {id:'cagedBird',name:'笼中金丝雀',emoji:'🐤',meaning:'笼门大开却蜷缩在角落的鸟；隐喻习得性无助、被困住的才华。'},
       {id:'horse',name:'断角雄鹿',emoji:'🐴',meaning:'犄角折断、低头垂丧；象征受挫的自尊心、权力丧失与阉割焦虑。'},
       {id:'turtle',name:'柔软刺猬',emoji:'🐢',meaning:'全身长满硅胶软刺；渴望亲密却又条件反射般抗拒（回避型依恋）。'},
-      {id:'butterfly',name:'破茧玻璃蝶',emoji:'🦋',meaning:'破开粗糙木茧的彩玻璃蝴蝶；代表痛苦但成功的蜕变与新生。'}
+      {id:'butterfly',name:'破茧玻璃蝶',emoji:'🦋',meaning:'破开粗糙木茧的彩玻璃蝴蝶；代表痛苦但成功的蜕变与新生。'},
+      {id:'ouroboros',name:'吞尾之蛇',emoji:'🐍',meaning:'首尾相咬死循环的金属蛇；代表严重的精神内耗与无法摆脱的强迫思维。'}
     ]
   },
   {
     id:'building', name:'建筑类', icon:'🏠',
-    desc:'房子是内心结构最经典的象征：你在住什么样的"心"？',
+    desc:'桥、门、房屋与庇护空间，共同勾勒内心的结构与边界。',
     query:'什么样的地方才算是家 归属感',
     queries:[
       '什么样的地方才算是家 归属感',
@@ -68,13 +78,18 @@ const CATEGORIES = [
       '安全感 来自哪里',
     ],
     toys:[
+      {id:'stoneBridge',name:'稳固石桥',emoji:'🌉',meaning:'宽阔平缓的微缩拱桥；象征顺畅的沟通、人生的平稳过渡期。'},
+      {id:'halfOpenGate',name:'半开柴门',emoji:'🚪',meaning:'没有围墙、虚掩的木门；代表开放的心态、对新事物的接纳。'},
       {id:'thatch',name:'悬崖危房',emoji:'🛖',meaning:'一半地基悬空的破屋；投射摇摇欲坠的安全感、随时崩塌的焦虑。'},
       {id:'stone',name:'水泥牢笼',emoji:'🪨',meaning:'钢筋裸露的封闭方块；代表画地为牢、被现实困境深深束缚。'},
       {id:'cabin',name:'冒烟小木屋',emoji:'🏠',meaning:'烟囱透出暖光和白烟；投射内心的归属感、温暖的避风港。'},
+      {id:'openTent',name:'敞开帐篷',emoji:'⛺',meaning:'扎在草地上的露营帐篷；隐喻灵活的适应力、探索欲与轻松的生活态度。'},
       {id:'flat',name:'繁茂温室',emoji:'🏢',meaning:'充满生机、玻璃完好的花房；代表良好的自我保护与成长的孵化器。'},
       {id:'tower',name:'坚固灯塔',emoji:'🏙️',meaning:'屹立在平地上的发光塔；象征明确的信仰、人生方向与指引者。'},
       {id:'ruin',name:'迷宫高墙',emoji:'🏚️',meaning:'沉重的混凝土迷宫切片；代表内心的困局、极度僵化的人际防御。'},
-      {id:'castle',name:'断阶城堡',emoji:'🏰',meaning:'阶梯断裂悬空的华丽城堡；象征完美主义带来的孤立、可望不可即的目标。'}
+      {id:'castle',name:'断阶城堡',emoji:'🏰',meaning:'阶梯断裂悬空的华丽城堡；象征完美主义带来的孤立、可望不可即的目标。'},
+      {id:'abandonedPark',name:'废弃游乐园',emoji:'🎠',meaning:'生锈的旋转木马；隐喻失去活力的内在小孩、童年创伤与抑郁。'},
+      {id:'sealedLighthouse',name:'无门孤岛灯塔',emoji:'🗼',meaning:'发光却完全封死的石塔；象征能照亮他人却无法拯救自己的极致孤独。'}
     ]
   },
   {
@@ -90,13 +105,18 @@ const CATEGORIES = [
       '天气 季节 如何影响心情',
     ],
     toys:[
+      {id:'sproutingWood',name:'枯木新芽',emoji:'🌱',meaning:'焦黑木头顶端抽出嫩绿；象征绝处逢生、抑郁后的生命力复苏。'},
+      {id:'glowingOasis',name:'微光绿洲',emoji:'🏝️',meaning:'散发微光的清泉与小草；代表内心最后的净土、极强的自我疗愈力。'},
       {id:'tree',name:'连根拔起的大树',emoji:'🌳',meaning:'根系外露倒伏的古树；象征失去归属感、经历重大变故后的动荡。'},
       {id:'flower',name:'石缝野花',emoji:'🌸',meaning:'顶开巨石绽放的黄花；象征在巨大压力下依然坚韧不拔的生命力。'},
       {id:'mountain',name:'冰封火山',emoji:'⛰️',meaning:'冰块包裹着暗红火山口；代表被极度压抑的愤怒、随时可能爆发的情绪。'},
+      {id:'fertileSoil',name:'肥沃黑土',emoji:'🟫',meaning:'一块质感湿润的微缩土壤；代表极具潜力的基底、脚踏实地的踏实感。'},
       {id:'water',name:'顺流清泉',emoji:'🌊',meaning:'动态透明的流觞曲水；隐喻情绪的自然流动、疏导与澄澈的内心。'},
       {id:'sun',name:'破晓晨星',emoji:'☀️',meaning:'沙地上升起的半个暖色光球；代表熬过黑暗后的新起点与希望。'},
       {id:'moon',name:'深渊水潭',emoji:'🌙',meaning:'漆黑不见底的树脂水坑；投射对未知潜意识的恐惧、深不可测的抑郁。'},
-      {id:'rock',name:'干涸河床',emoji:'🪨',meaning:'严重龟裂的泥土；隐喻情感枯竭、职业倦怠（Burnout）与麻木。'}
+      {id:'rock',name:'干涸河床',emoji:'🪨',meaning:'严重龟裂的泥土；隐喻情感枯竭、职业倦怠（Burnout）与麻木。'},
+      {id:'wiltedRose',name:'枯萎玫瑰',emoji:'🥀',meaning:'失去水分、低垂变黑的干花；代表未处理的哀伤、逝去的爱与遗憾。'},
+      {id:'storm',name:'狂风骤雨',emoji:'🌧️',meaning:'灰色云朵下方带着倾斜的雨丝；投射内心的混乱、持续的焦虑与风暴。'}
     ]
   },
   {
@@ -113,15 +133,22 @@ const CATEGORIES = [
     ],
     toys:[
       {id:'bike',name:'倒地单车',emoji:'🚲',meaning:'十字路口倒伏的老式自行车；投射日常生活的焦虑、人生岔路口的瘫痪。'},
+      {id:'balloon',name:'升空热气球',emoji:'🎈',meaning:'色彩明快、正向上拉扯的布景；代表超越现实困境的渴望与自由。'},
       {id:'car',name:'稳健越野车',emoji:'🚗',meaning:'底盘极高的粗犷模型；隐喻克服重重障碍的能力、抗挫折性。'},
       {id:'train',name:'铺好的铁轨',emoji:'🚂',meaning:'笔直闪亮的双轨与火车头；代表清晰的人生规划、稳步向前。'},
       {id:'boat',name:'扬帆巨轮',emoji:'⛵',meaning:'船帆饱满的木制大船；象征宏大的目标、乘风破浪的执行力。'},
-      {id:'plane',name:'发光纸飞机',emoji:'✈️',meaning:'边缘散发微光的折纸；象征纯粹的梦想、不计后果但勇敢的冲动。'}
+      {id:'glider',name:'展翅滑翔翼',emoji:'🪂',meaning:'迎风张开的轻盈骨架；代表顺应时势、掌控人生气流的“心流”状态。'},
+      {id:'brokenBoat',name:'断桨孤舟',emoji:'🛶',meaning:'停在沙地上破旧无桨的木船；隐喻随波逐流、失去掌控感与迷茫停滞。'},
+      {id:'plane',name:'发光纸飞机',emoji:'✈️',meaning:'边缘散发微光的折纸；象征纯粹的梦想、不计后果但勇敢的冲动。'},
+      {id:'tracklessTank',name:'无带坦克',emoji:'🪖',meaning:'沉重但没有履带的生锈装甲；代表防御极高但行动力完全丧失。'},
+      {id:'anchoredSubmarine',name:'抛锚潜水艇',emoji:'⚓',meaning:'沉没在沙底无法上浮；隐喻被深层负面情绪死死拖住。'},
+      {id:'overloadedPickup',name:'超载皮卡',emoji:'🛻',meaning:'后斗堆满如山般杂物的小车；代表背负过多过往经历、不愿断舍离。'},
+      {id:'brokenBridgeBus',name:'断桥前的公交',emoji:'🚌',meaning:'停在断裂桥面边缘的车；象征人生进程突遭变故、戛然而止的危机感。'}
     ]
   },
   {
     id:'symbol', name:'象征类', icon:'🗝️',
-    desc:'钥匙、门、桥、镜子——沙盘游戏里最意味深长的一类。',
+    desc:'羽毛、钥匙、天平、镜子——让抽象感受拥有可以被看见的形状。',
     query:'如何修复一段疏远的关系',
     queries:[
       '如何修复一段疏远的关系',
@@ -132,10 +159,18 @@ const CATEGORIES = [
       '亲密关系里的边界',
     ],
     toys:[
+      {id:'goldenFeather',name:'悬浮金羽',emoji:'🪶',meaning:'几乎没有重量感的发光羽毛；象征绝对的希望、精神的解脱与信仰。'},
       {id:'key',name:'发光指南针',emoji:'🗝️',meaning:'指针稳定指向前方的罗盘；代表坚定的内在价值观、不被外界干扰。'},
-      {id:'door',name:'门',emoji:'🚪',meaning:'边界与选择：两个阶段之间的出入口。'},
-      {id:'bridge',name:'桥',emoji:'🌉',meaning:'连接与过渡，把分离的两端重新连起来。'},
-      {id:'mirror',name:'纯净水晶球',emoji:'🪞',meaning:'内部清澈透明的玻璃球；代表看清事物本质的智慧、清晰的未来愿景。'}
+      {id:'balanceScale',name:'平衡天平',emoji:'⚖️',meaning:'两端完美持平的黄铜天平；隐喻内心的公正、生活与工作的完美平衡。'},
+      {id:'mirror',name:'纯净水晶球',emoji:'🪞',meaning:'内部清澈透明的玻璃球；代表看清事物本质的智慧、清晰的未来愿景。'},
+      {id:'wheat',name:'饱满麦穗',emoji:'🌾',meaning:'金黄且沉甸甸的植物模型；象征努力后的丰收、内心的富足感。'},
+      {id:'treasureChest',name:'开启的宝箱',emoji:'🧰',meaning:'溢出光芒的小木箱；代表发掘自身的潜在资源、对自我价值的肯定。'},
+      {id:'burningIce',name:'燃烧冰块',emoji:'🧊',meaning:'内部有动态火焰的透明方块；隐喻极度分裂的心理矛盾、冰火交融的煎熬。'},
+      {id:'brokenHourglass',name:'碎裂沙漏',emoji:'⌛',meaning:'漏斗破裂，沙子凝固半空；投射严重的年龄焦虑、对逝去时间的无力感。'},
+      {id:'rustAnchor',name:'生锈铁锚',emoji:'⚓',meaning:'极其沉重的做旧铁器；代表拖垮人生的累赘、无法摆脱的原生家庭羁绊。'},
+      {id:'redKnot',name:'乱麻红线',emoji:'🧶',meaning:'缠绕成死结的红线团；隐喻无法理清的复杂人际关系、孽缘与执念。'},
+      {id:'lockedBlackBox',name:'上锁黑盲盒',emoji:'◼️',meaning:'没有任何缝隙的哑光黑盒子；代表对未知的恐惧、被深埋的秘密与压抑。'},
+      {id:'dustyCrown',name:'蒙尘王冠',emoji:'👑',meaning:'掉落角落布满灰尘的王冠；象征放弃的野心、失落的自尊与中年危机。'}
     ]
   },
   {
@@ -153,9 +188,15 @@ const CATEGORIES = [
     toys:[
       {id:'fairy',name:'捧星精灵',emoji:'🧚',meaning:'细小精致的发光人偶；象征内在充沛的创造力、灵感与初心守护。'},
       {id:'unicorn',name:'云端独角兽',emoji:'🦄',meaning:'柔和色彩的白泥雕塑；代表最纯洁的理想、奇迹般的疗愈力量。'},
+      {id:'wingedBook',name:'生翼之书',emoji:'📖',meaning:'翻开的书页变成了飞鸟翅膀；象征知识带来的思想解放、打破常规。'},
       {id:'wizard',name:'无脸黑袍巫师',emoji:'🧙‍♂️',meaning:'只有兜帽没有面孔的模型；隐喻对未知力量的恐惧、被潜意识反噬的担忧。'},
       {id:'crystal',name:'瓶中宇宙',emoji:'🔮',meaning:'微缩星空包裹在玻璃瓶中；隐喻内向者极其丰富的精神世界与深度。'},
       {id:'star',name:'仙女魔法棒',emoji:'⭐',meaning:'顶端带星芒的木棍；投射“希望拥有改变一切的能力”的积极渴望。'},
+      {id:'moonMirror',name:'水中月镜',emoji:'🪞',meaning:'镜面映出虚无月亮的雕塑；隐喻求而不得的幻觉、极度浪漫的悲剧感。'},
+      {id:'clockworkDragon',name:'发条齿轮龙',emoji:'🐉',meaning:'充满机械感与秩序感的巨龙；代表试图用僵化的理智去强行压制潜意识。'},
+      {id:'sleepingGargoyle',name:'沉睡石像鬼',emoji:'🗿',meaning:'蜷缩收起翅膀的怪物石雕；象征自我封印的潜能、暗中监视内心的“超我”。'},
+      {id:'brokenCrystalShoe',name:'破损水晶鞋',emoji:'👠',meaning:'裂开一角的玻璃鞋；投射童话梦碎、对“被拯救”幻想的彻底幻灭。'},
+      {id:'mirageCastle',name:'迷雾海市蜃楼',emoji:'🌫️',meaning:'底部由灰白色雾气托起的虚幻城堡；代表自欺欺人、逃避现实的解离状态。'},
       {id:'rainbow',name:'透明彩虹桥',emoji:'🌈',meaning:'散发微弱七彩光芒的拱桥；代表跨越维度的奇妙连结、潜意识与意识的沟通。'}
     ]
   },
@@ -173,7 +214,15 @@ const CATEGORIES = [
     ],
     toys:[
       {id:'sword',name:'豁口巨剑',emoji:'⚔️',meaning:'插在沙地里、残破不堪的重剑；代表过往创伤留下的痕迹、过度防御导致的攻击性。'},
+      {id:'guardianLion',name:'守护石狮',emoji:'🦁',meaning:'威严但平静的石雕神兽；代表内心强大的守护力量、驱逐焦虑的安全感。'},
+      {id:'barrierAxe',name:'破障巨斧',emoji:'🪓',meaning:'造型利落锋利的伐木斧；隐喻极强的决断力、敢于斩断有毒关系的魄力。'},
       {id:'shield',name:'纯银盾牌',emoji:'🛡️',meaning:'光滑闪亮的微缩盾牌；象征健康坚固的个人边界、有效的自我保护。'},
+      {id:'thornSword',name:'斩棘宝剑',emoji:'🗡️',meaning:'剑身上缠绕着断裂的藤蔓；象征用理智与清晰的认知劈开生活乱局。'},
+      {id:'healingStaff',name:'治愈法杖',emoji:'🪄',meaning:'顶端镶嵌绿色发光宝石的木杖；代表将过往痛苦转化为疗愈他人或自己的能力。'},
+      {id:'inwardDagger',name:'内刺匕首',emoji:'🔪',meaning:'刀刃弯折指向手柄处的怪异匕首；隐喻强烈的自我攻击、内疚与自我否定。'},
+      {id:'smilingSpider',name:'笑脸多眼蜘蛛',emoji:'🕷️',meaning:'身体怪异、背部带惊悚笑脸；投射对复杂人际关系的偏执恐惧与社交恐惧。'},
+      {id:'blackSlime',name:'吞光黑泥',emoji:'⚫',meaning:'一滩哑光、无法看清细节的黏液；象征吞噬活力的深重低落或精神虚无。'},
+      {id:'thornChain',name:'荆棘锁链',emoji:'⛓️',meaning:'冰冷铁链上长满尖刺；代表自我惩罚、被原生家庭或病态关系深深捆绑的窒息感。'},
       {id:'dragon',name:'驯服的小恐龙',emoji:'🐲',meaning:'神态温顺的史前巨兽缩小版；代表成功整合了内心原始的野性与本能。'},
       {id:'beast',name:'吐火三头犬',emoji:'👹',meaning:'狂暴的地狱恶犬；隐喻内心无法控制的巨大愤怒、极强的敌意与破坏欲。'}
     ]
@@ -182,30 +231,61 @@ const CATEGORIES = [
 
 /* 用户提供的实体沙具素材；emoji 只保留为图片加载失败时的文字语义。 */
 const TOY_IMAGES={
-  child:'/images/human/c2ce9c9043aa34923de4aae306af4a9b.webp',student:'/images/human/4ed59ecd8d0985ed1e92d233d0a64a51.webp',
-  worker:'/images/human/a8883bc92c6a5ea1fe565a64be744a24.webp',doctor:'/images/human/02e0dcad2ca3696e4b98c8d8952020f8.webp',
+  child:'/images/human/c2ce9c9043aa34923de4aae306af4a9b.webp',climber:'/images/human/a1fec71a9cf39dd961f7ae6a2d8e1646.webp',
+  student:'/images/human/4ed59ecd8d0985ed1e92d233d0a64a51.webp',worker:'/images/human/a8883bc92c6a5ea1fe565a64be744a24.webp',
+  doctor:'/images/human/02e0dcad2ca3696e4b98c8d8952020f8.webp',family:'/images/human/760c312d986de80750a195ceb60bd085.webp',
+  masked:'/images/human/ded7e113358b305e6d55be5cdd5060f5.webp',backToBack:'/images/human/2b45f8f7960df9d7bcbf888b3cdd947f.webp',
   police:'/images/human/d1d3e66c2b9ed8caa805f5d7c7f5e768.webp',elder:'/images/human/227d793dfe8a7dbf81141378725f7929.webp',
-  mystery:'/images/human/31188389f933efb9649502f437b3807f.webp',cat:'/images/animals/c6b8b59a57f5bf254c4f566befd54dc4.webp',
-  dog:'/images/animals/80abfc4ab325cbe0e36e402b5d75bed4.webp',bird:'/images/animals/9ce5f4dd8b36c54b9cea4719c95b33bf.webp',
-  fish:'/images/animals/4c6c5a9d546332349976c2f68f80782f.webp',horse:'/images/animals/51c2103c2d602144e2bf8d9d6852a9a5.webp',
-  turtle:'/images/animals/f2cee562912600c9feaabd41f88f7840.webp',butterfly:'/images/animals/e7ad2e21f2ad7f56525b6269f23e0c5b.webp',
+  mystery:'/images/human/31188389f933efb9649502f437b3807f.webp',meltingFigure:'/images/human/aceccdc5657ece2e810b0dbe3c9cd82d.webp',
+
+  eagle:'/images/animals/2d671aacf43587b9968e64d4035334d5.webp',cat:'/images/animals/c6b8b59a57f5bf254c4f566befd54dc4.webp',
+  dog:'/images/animals/80abfc4ab325cbe0e36e402b5d75bed4.webp',motherDeer:'/images/animals/58081279db2f0a45f56009dc98b74947.webp',
+  lion:'/images/animals/a1322da574a35ffbfd0c9668c762a1d4.webp',bird:'/images/animals/9ce5f4dd8b36c54b9cea4719c95b33bf.webp',
+  fish:'/images/animals/4c6c5a9d546332349976c2f68f80782f.webp',cagedBird:'/images/animals/203c2f6f89d12b09d725ae217b1995fd.webp',
+  horse:'/images/animals/51c2103c2d602144e2bf8d9d6852a9a5.webp',turtle:'/images/animals/f2cee562912600c9feaabd41f88f7840.webp',
+  butterfly:'/images/animals/e7ad2e21f2ad7f56525b6269f23e0c5b.webp',ouroboros:'/images/animals/168ad7adfda79d9bf130fcb38f5edc49.webp',
+
+  stoneBridge:'/images/buildings/fa78593fd9ac71f57c2825f8c7adf2ab.webp',halfOpenGate:'/images/buildings/3666164c83f0a7da41c6adee494974ed.webp',
   thatch:'/images/buildings/858a519cdffdb913bd2cb4dc85726539.webp',stone:'/images/buildings/b922360754097bba52c523ecb8a54229.webp',
-  cabin:'/images/buildings/04379daf871f13a84e249e66453f01ea.webp',flat:'/images/buildings/f17fcf4b8049920245ddf14d5af1c091.webp',
-  tower:'/images/buildings/0fd9757ca3b0013e56bf78c5b4a5a02b.webp',ruin:'/images/buildings/91252af5667e803307304308cf85aab3.webp',
-  castle:'/images/buildings/534cc6aa6fa5e687b65926cbcaa4c842.webp',tree:'/images/nature/e8efc7b750b6609f1727efdd3be9cab9.webp',
-  flower:'/images/nature/dc7bf3689f32daf5b4ad6b01be4bfcda.webp',mountain:'/images/nature/61661e4c63c5e19fda84ddcac7f37239.webp',
+  cabin:'/images/buildings/04379daf871f13a84e249e66453f01ea.webp',openTent:'/images/buildings/8865804bba2aef236416e201bd7d275a.webp',
+  flat:'/images/buildings/f17fcf4b8049920245ddf14d5af1c091.webp',tower:'/images/buildings/0fd9757ca3b0013e56bf78c5b4a5a02b.webp',
+  ruin:'/images/buildings/91252af5667e803307304308cf85aab3.webp',castle:'/images/buildings/534cc6aa6fa5e687b65926cbcaa4c842.webp',
+  abandonedPark:'/images/buildings/e8404cff0af5921e62891fafa6898355.webp',sealedLighthouse:'/images/buildings/a077c5b559c129fc239438554c41da08.webp',
+
+  sproutingWood:'/images/nature/55e858ae81b67d041c0e774b754aa4fa.webp',glowingOasis:'/images/nature/98bc68f0a9c08ee939a0d0cb6fb845d2.webp',
+  tree:'/images/nature/e8efc7b750b6609f1727efdd3be9cab9.webp',flower:'/images/nature/dc7bf3689f32daf5b4ad6b01be4bfcda.webp',
+  mountain:'/images/nature/61661e4c63c5e19fda84ddcac7f37239.webp',fertileSoil:'/images/nature/e0f2c01232482f30b4fafea3d19ed521.webp',
   water:'/images/nature/570b3ae13416b5d709717ef245bf7e9e.webp',sun:'/images/nature/ba07e23bc19003963020d22cbee9fd30.webp',
   moon:'/images/nature/0976c1b9632cdae4467cac5648e273e6.webp',rock:'/images/nature/973bd06e24a808bfe23ebd02a5a193a3.webp',
-  bike:'/images/transport/9ab477d608d85fb573bc38a9baeccb1b.webp',car:'/images/transport/978a465d4b3f872b57f93d5d558c96aa.webp',
-  train:'/images/transport/dc873b8d457c8ae3146bcadea7678d93.webp',boat:'/images/transport/844cc9e71bd3ff88d463b57f9fc151ef.webp',
-  plane:'/images/transport/f0f9afa0cb8b6e084b110987018ca546.webp',key:'/images/Symbol/8e081d0dffecc9d9535748dffdece301.webp',
-  door:'/images/buildings/3666164c83f0a7da41c6adee494974ed.webp',bridge:'/images/buildings/fa78593fd9ac71f57c2825f8c7adf2ab.webp',
-  mirror:'/images/Symbol/1912ba306bc34b519256d2d845371d30.webp',fairy:'/images/fantasy/936c50f5a292fa869d0ed0653f244901.webp',
-  unicorn:'/images/fantasy/05aed826ad5f5f8a446d3f0ea27e0d34.webp',wizard:'/images/fantasy/c75a0e06803548c9c57a9242311be90f.webp',
+  wiltedRose:'/images/nature/7bd491749dd4628ff6c397d47a0184c4.webp',storm:'/images/nature/1c771d71d64efff5b2941d3b0a25dca3.webp',
+
+  bike:'/images/transport/9ab477d608d85fb573bc38a9baeccb1b.webp',balloon:'/images/transport/0731998d295c29accb58e562bf4b00a9.webp',
+  car:'/images/transport/978a465d4b3f872b57f93d5d558c96aa.webp',train:'/images/transport/dc873b8d457c8ae3146bcadea7678d93.webp',
+  boat:'/images/transport/844cc9e71bd3ff88d463b57f9fc151ef.webp',glider:'/images/transport/f0f9afa0cb8b6e084b110987018ca546.webp',
+  brokenBoat:'/images/transport/8e01a669fc4930242012745f6b32be25.webp',plane:'/images/transport/ccdc5e89bb2a2409a771b8659b4203ce.webp',
+  tracklessTank:'/images/transport/6d14178e617db6bba05319a67e70fb0e.webp',anchoredSubmarine:'/images/transport/41e5d9daced3b8c7d92fa7a33c35b837.webp',
+  overloadedPickup:'/images/transport/4026a3786486971617f5629464adc3a9.webp',brokenBridgeBus:'/images/transport/431ffc645b20bbd9d04d8ba85aacec91.webp',
+
+  goldenFeather:'/images/Symbol/9826b83bf16028beed0c844879405ff5.webp',key:'/images/Symbol/8e081d0dffecc9d9535748dffdece301.webp',
+  balanceScale:'/images/Symbol/7a3a69f4b05c819d986213403ba93056.webp',mirror:'/images/Symbol/1912ba306bc34b519256d2d845371d30.webp',
+  wheat:'/images/Symbol/abeec1c264d6b6a789d9781edda644cc.webp',treasureChest:'/images/Symbol/5af030377f2310ca44acea0f96395af3.webp',
+  burningIce:'/images/Symbol/871c437a0e8c21dab45acecf88c6fa4d.webp',brokenHourglass:'/images/Symbol/c9f946deadfefe57fc210f7c88eeb889.webp',
+  rustAnchor:'/images/Symbol/6a64035cf4e3c376ef87a115e06c801b.webp',redKnot:'/images/Symbol/6fdbdd237d1851e6fbd5abc30c184f7c.webp',
+  lockedBlackBox:'/images/Symbol/14a2d7b221000415e58dd1abf75060bb.webp',dustyCrown:'/images/Symbol/77e40573541a6286c487bf4eef8bf1f6.webp',
+
+  fairy:'/images/fantasy/936c50f5a292fa869d0ed0653f244901.webp',unicorn:'/images/fantasy/05aed826ad5f5f8a446d3f0ea27e0d34.webp',
+  wingedBook:'/images/fantasy/77fb7d007ea12646afd9e2fdda702b6e.webp',wizard:'/images/fantasy/c75a0e06803548c9c57a9242311be90f.webp',
   crystal:'/images/fantasy/b688a3ccfb056574cc2fc0d5388fef35.webp',star:'/images/fantasy/c34c3daab90de619711af1ce886d5359.webp',
-  rainbow:'/images/fantasy/954db4511233bb8f3a51c5532601f673.webp',sword:'/images/attackandmonster/94d8c2876ccb653f144ce85abaec2bac.webp',
-  shield:'/images/attackandmonster/265f9e67af041da6ccf0e4ebd1549e6c.webp',dragon:'/images/fantasy/d5f55647155cbe808e6bcf2dda0dfa51.webp',
-  beast:'/images/attackandmonster/bdee96bae33e8fa4730e4d3e99005b20.webp',
+  moonMirror:'/images/fantasy/976d47abf13b540291cb2a8df6a0194e.webp',clockworkDragon:'/images/fantasy/d5f55647155cbe808e6bcf2dda0dfa51.webp',
+  sleepingGargoyle:'/images/fantasy/0b40e9055f9c1216620fb103c85bbf34.webp',brokenCrystalShoe:'/images/fantasy/08f196664c00730415ce7c5c02b8bc65.webp',
+  mirageCastle:'/images/fantasy/d455b6b8f80a9138effb03b4e4d7cc08.webp',rainbow:'/images/fantasy/954db4511233bb8f3a51c5532601f673.webp',
+
+  sword:'/images/attackandmonster/94d8c2876ccb653f144ce85abaec2bac.webp',guardianLion:'/images/attackandmonster/ecff38ea64fc9b3dafcd4ec0dbc453d2.webp',
+  barrierAxe:'/images/attackandmonster/2e1913d101c4f76381d826e58a3d52a4.webp',shield:'/images/attackandmonster/265f9e67af041da6ccf0e4ebd1549e6c.webp',
+  thornSword:'/images/attackandmonster/29c8d90e52efd161cd0bcaba88f3d826.webp',healingStaff:'/images/attackandmonster/66551ae56dfcbc10001ecc4ce86e4aa4.webp',
+  inwardDagger:'/images/attackandmonster/6fcefc800f488c9821b7c99d85824511.webp',smilingSpider:'/images/attackandmonster/9ce542ae65da863cf89838c00581c809.webp',
+  blackSlime:'/images/attackandmonster/de279d1cd202d3b38224b8fcfa774194.webp',thornChain:'/images/attackandmonster/3e517d0b5e73ed4b078c0f585335a46e.webp',
+  dragon:'/images/attackandmonster/590e0284d97744160ab7cd051053d701.webp',beast:'/images/attackandmonster/bdee96bae33e8fa4730e4d3e99005b20.webp',
 };
 CATEGORIES.forEach(category=>category.toys.forEach(toy=>{toy.image=TOY_IMAGES[toy.id]}));
 
@@ -215,14 +295,14 @@ const OPEN_QUESTIONS = {
   building:['这些建筑里，哪一栋最像你现在的状态？','如果把沙盘看作你的内心世界，"门"是开着的吗？','有没有什么地方，是这些"人"可以随时回去的？'],
   nature:['沙盘里的自然物，是背景还是主角？','如果要在这片风景里待上一天，你会待在哪里？','有没有哪一样东西，是你希望更多一些的？'],
   traffic:['交通工具们正朝向哪个方向？那是你想去的方向吗？','现在的你，更像是"赶路"还是"在路上散步"？','如果可以换乘任意一种交通工具，你会换成哪个？'],
-  symbol:['钥匙对应的那扇门，找到了吗？','沙盘里有没有"连接不够"的地方，需要一座桥？','镜子照见了什么——那是意外，还是意料之中？'],
+  symbol:['如果这把钥匙能开启一种可能，它会是什么？','天平两端分别放着什么，怎样才更接近你想要的平衡？','镜子照见了什么——那是意外，还是意料之中？'],
   fantasy:['这些幻想角色，是来帮忙的，还是来提醒什么的？','如果可以实现一个愿望，你会放在沙盘的哪个位置？','它们和现实里的沙具，相处得怎么样？'],
   monster:['武器是在保护什么？','那头怪兽，如果可以对话，它想说什么？','力量放在哪个位置，你会更安心？']
 };
 const ATMOS = {
   warm:'整体氛围偏温暖安定，人物与建筑占据了主要位置，像是内心正在寻找或已经找到了一处可以安放自己的地方。',
   tense:'画面中出现了明显的张力——武器与怪兽的存在提示着某些尚未化解的冲突或压力，它们值得被看见，而不是被推开。',
-  transition:'象征类沙具（钥匙、门、桥、镜子）的密度较高，暗示你正处在一段"过渡期"：旧阶段正在收尾，新阶段尚未完全展开。',
+  transition:'象征类沙具（钥匙、镜子、沙漏、锚等）的密度较高，暗示你正处在一段"过渡期"：旧阶段正在收尾，新阶段尚未完全展开。',
   sparse:'沙具数量不多，摆放也较为舒展，留白本身就是一种表达——也许此刻的你需要的不多，一些空间和一些安静。',
   rich:'沙具丰富、排布紧凑，画面充满生机与细节，提示内心有很多正在酝酿的东西，值得慢慢梳理。'
 };
