@@ -205,6 +205,7 @@ npm start
 | 无知乎凭证 | 无 | 健康检查和登录配置提示 | 进入游戏、报告、社区互动 |
 | 内容 API | `ZHIHU_ACCESS_SECRET` | 搜索和热榜接口 | 进入游戏、OAuth 用户功能和报告 |
 | 完整在线 | 知乎凭证、AI Key、公网 HTTPS 回调 | 内容 API、OAuth、用户内容、大模型分析、归属验证 | 平台未开放的代点赞、代评论、代发布 |
+| 评委体验 | 内容 API、AI Key、评委账号哈希 | 沙盘、报告、社区和明确标注的示例用户中心 | 真实知乎创作归属验证 |
 | 本地 CLI 数据源 | 已授权 CLI | Windows/macOS 上的搜索、热榜、本人创作、关注与校验 | OAuth 仍需要 App ID、App Key 和公网 HTTPS 回调 |
 
 这里的“无知乎凭证”表示不连接知乎 API，不代表首次安装可以完全断网；`npm ci` 仍可能需要网络。
@@ -217,6 +218,7 @@ npm start
 - `sourceType: "api"`：使用 Access Secret 直连内容 API。
 - `sourceType: "cli"`：使用本地 CLI。
 - `oauthReady: false`：当前环境不能完成 OAuth 登录。
+- `judgeLoginReady: true`：评委体验账号已经配置，可以从独立登录页进入。
 - `loggedIn: true`：当前浏览器已经登录。
 
 ## 配置知乎开放平台
@@ -240,6 +242,28 @@ AI_MODEL=gpt-5.6-sol
 COMMUNITY_DATA_PATH=./data/local-store.json
 PORT=3000
 ```
+
+### 配置评委测试账号
+
+比赛材料要求提供测试账号密码时，明文密码只填写在提交表单中，仓库和服务器配置只保存不可逆的 scrypt 哈希。Linux 服务器可这样生成：
+
+```bash
+read -s -p "Judge password: " JUDGE_PASSWORD; echo
+JUDGE_HASH="$(printf '%s' "$JUDGE_PASSWORD" | npm run --silent judge:hash)"
+unset JUDGE_PASSWORD
+printf '%s\n' "$JUDGE_HASH"
+```
+
+将输出复制进服务器的 `.env.production`：
+
+```dotenv
+JUDGE_LOGIN_ENABLED=true
+JUDGE_LOGIN_USERNAME=shayu_judge
+JUDGE_LOGIN_PASSWORD_HASH=scrypt$...
+JUDGE_LOGIN_DISPLAY_NAME=评委体验账号
+```
+
+体验账号可以完成沙盘、AI 报告和社区互动；用户中心展示的创作与关注均标记为演示数据，不冒充真实知乎信息，也不能校验知乎创作归属。登录接口带有按 IP 限流。
 
 | 配置 | 用途 |
 |---|---|
@@ -313,6 +337,7 @@ PORT=3000
 | GET | `/auth/login` | 开始知乎 OAuth 登录 |
 | GET | `/auth/callback` | 接收 OAuth 回调 |
 | POST | `/auth/logout` | 退出登录 |
+| POST | `/auth/judge` | 使用服务端配置的评委体验账号登录 |
 
 ## 数据保存与当前限制
 

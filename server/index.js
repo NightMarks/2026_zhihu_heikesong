@@ -31,6 +31,7 @@ import {
 } from './ai-analysis.js';
 import { CommunityService, createCommunityRouter } from './community.js';
 import { createJsonStore } from './store.js';
+import { createJudgeAuthRouter, getJudgeData, judgeAuthReady } from './judge-auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -49,6 +50,10 @@ const cfg = {
   aiBaseUrl:   process.env.AI_BASE_URL || 'https://api.openai-next.com/v1',
   aiModel:     process.env.AI_MODEL || 'gpt-5.6-sol',
   communityDataPath: process.env.COMMUNITY_DATA_PATH || path.join(ROOT, 'data', 'local-store.json'),
+  judgeLoginEnabled: process.env.JUDGE_LOGIN_ENABLED || '',
+  judgeLoginUsername: process.env.JUDGE_LOGIN_USERNAME || '',
+  judgeLoginPasswordHash: process.env.JUDGE_LOGIN_PASSWORD_HASH || '',
+  judgeLoginDisplayName: process.env.JUDGE_LOGIN_DISPLAY_NAME || '评委体验账号',
 };
 
 // 读 .env（不引额外依赖，手写足够）
@@ -78,6 +83,10 @@ if (fs.existsSync(envPath)) {
   fill('AI_BASE_URL',         'aiBaseUrl');
   fill('AI_MODEL',            'aiModel');
   fill('COMMUNITY_DATA_PATH', 'communityDataPath');
+  fill('JUDGE_LOGIN_ENABLED', 'judgeLoginEnabled');
+  fill('JUDGE_LOGIN_USERNAME', 'judgeLoginUsername');
+  fill('JUDGE_LOGIN_PASSWORD_HASH', 'judgeLoginPasswordHash');
+  fill('JUDGE_LOGIN_DISPLAY_NAME', 'judgeLoginDisplayName');
 }
 
 if (!cfg.redirectUri) {
@@ -146,6 +155,18 @@ function session(req, res) {
   return sessions.get(sid);
 }
 
+const judgeConfig = {
+  enabled: /^(1|true|yes|on)$/i.test(String(cfg.judgeLoginEnabled)),
+  username: cfg.judgeLoginUsername,
+  passwordHash: cfg.judgeLoginPasswordHash,
+  displayName: cfg.judgeLoginDisplayName,
+};
+const isJudgeLoginReady = judgeAuthReady(judgeConfig);
+app.use('/auth/judge', createJudgeAuthRouter({
+  ...judgeConfig,
+  getSession: session,
+}));
+
 app.use('/api/community', (req, res, next) => {
   if (req.method === 'GET') return next();
   const s = session(req, res);
@@ -204,6 +225,7 @@ app.get('/api/capabilities', (req, res) => {
     oauth:      credsReady,
     // 凭证齐备 ≠ 能登录：还要回调地址是公网 HTTPS，前端据此区分三态
     oauthReady:    credsReady && redirectReady,
+    judgeLoginReady: isJudgeLoginReady,
     redirectPublic: redirectReady,
     redirectUri:    cfg.redirectUri,   // 公开信息，便于用户核对开放平台登记值
     loggedIn:   !!s.user,
@@ -213,6 +235,7 @@ app.get('/api/capabilities', (req, res) => {
       url: s.user.url,
       headline: s.user.headline,
       description: s.user.description,
+      authType: s.user.authType || 'zhihu',
     } : null,
     aiReport:   !!analysisClient,
     aiModel:    analysisClient ? cfg.aiModel : null,
@@ -346,6 +369,7 @@ app.get('/auth/callback', async (req, res) => {
 app.post('/auth/logout', (req, res) => {
   const s = session(req, res);
   delete s.oauth; delete s.user;
+  delete s.oauthConfirmation; delete s.oauthAttemptNonce; delete s.oauthStartedAt;
   res.json({ ok: true });
 });
 
@@ -383,13 +407,20 @@ app.get('/api/hot', needSource, async (req, res) => {
 });
 
 /** 读取当前登录用户的创作 —— 用于"互动回链校验" */
-app.get('/api/me/contents', needSource, async (req, res) => {
+app.get('/api/me/contents', async (req, res) => {
   const s = session(req, res);
+  const { limit, offset } = pageParams(req.query);
+  if (s.user?.authType === 'judge') {
+    const d = getJudgeData('contents', { limit, offset });
+    return res.json({ items: d.Items, paging: d.Paging });
+  }
+  if (SOURCE === 'none') {
+    return res.status(503).json({ error: '未配置 ZHIHU_ACCESS_SECRET，且本地无已授权 CLI' });
+  }
   if (SOURCE === 'api' && !s.oauth?.token) {
     return res.status(401).json({ error: '未登录知乎' });
   }
   try {
-    const { limit, offset } = pageParams(req.query);
     const type = typeof req.query.type === 'string' ? req.query.type : 'all';
     const d = SOURCE === 'api'
       ? await zh.userContents(cfg.secret, s.oauth.token,
@@ -400,13 +431,20 @@ app.get('/api/me/contents', needSource, async (req, res) => {
 });
 
 /** 读取当前登录用户关注的人，支持 offset 分页 */
-app.get('/api/me/followees', needSource, async (req, res) => {
+app.get('/api/me/followees', async (req, res) => {
   const s = session(req, res);
+  const { limit, offset } = pageParams(req.query);
+  if (s.user?.authType === 'judge') {
+    const d = getJudgeData('followees', { limit, offset });
+    return res.json({ items: d.Items, paging: d.Paging });
+  }
+  if (SOURCE === 'none') {
+    return res.status(503).json({ error: '未配置 ZHIHU_ACCESS_SECRET，且本地无已授权 CLI' });
+  }
   if (SOURCE === 'api' && !s.oauth?.token) {
     return res.status(401).json({ error: '未登录知乎' });
   }
   try {
-    const { limit, offset } = pageParams(req.query);
     const d = SOURCE === 'api'
       ? await zh.userFollowees(cfg.secret, s.oauth.token, limit, offset)
       : await cli.cliMyFollowees(limit, offset);
@@ -426,8 +464,17 @@ app.get('/api/me/followees', needSource, async (req, res) => {
  * 这样"互动"是 100% 真实发生在知乎的，我们只做归属校验，
  * 既不伪造 API，也不要求平台开放写权限。
  */
-app.post('/api/verify-contribution', needSource, async (req, res) => {
+app.post('/api/verify-contribution', async (req, res) => {
   const s = session(req, res);
+  if (s.user?.authType === 'judge') {
+    return res.status(403).json({
+      ok: false,
+      error: '评委体验账号不绑定真实知乎身份，请使用知乎 OAuth 登录后校验真实创作',
+    });
+  }
+  if (SOURCE === 'none') {
+    return res.status(503).json({ ok: false, error: '未配置 ZHIHU_ACCESS_SECRET，且本地无已授权 CLI' });
+  }
   // 直连模式必须 OAuth 登录；CLI 模式本身就是"本人账号"，可直接校验
   if (SOURCE === 'api' && !s.oauth?.token) {
     return res.status(401).json({ ok: false, error: '请先用知乎账号登录，才能校验你的创作归属' });

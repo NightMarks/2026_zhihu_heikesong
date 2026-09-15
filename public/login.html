@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>进入沙游心语</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="js/login.js" defer></script>
+</head>
+<body class="login-page">
+  <main class="login-shell">
+    <section class="login-scene" aria-label="沙盘旅程介绍">
+      <a class="login-brand" href="/"><span>🏝️</span> 沙游心语 <small>沙盘 × 知乎</small></a>
+      <div class="login-scene-copy">
+        <p class="login-kicker">A SMALL WORLD, A TRUE STORY</p>
+        <h1>先确认同行的人，<br>再走进这片沙。</h1>
+        <p>真实用户通过知乎授权进入；比赛评委可以使用独立体验账号。两种身份都能完成沙盘、AI 报告和社区互动。</p>
+      </div>
+      <div class="login-sand-orbit" aria-hidden="true">
+        <span class="orbit-stone one"></span><span class="orbit-stone two"></span><span class="orbit-stone three"></span>
+        <div class="orbit-path"></div>
+      </div>
+      <p class="login-privacy">评委身份不绑定真实知乎账号 · 示例资料会明确标注</p>
+    </section>
+
+    <section class="login-card" aria-labelledby="login-title">
+      <a class="login-back" href="/">← 返回首页</a>
+      <header>
+        <p class="login-card-eyebrow">IDENTITY GATE</p>
+        <h2 id="login-title">选择进入方式</h2>
+        <p>你的身份只用于保存作品、社区互动和展示个人空间。</p>
+      </header>
+
+      <section class="login-method oauth-method" id="oauth-method" hidden>
+        <div class="login-method-title"><span class="method-index">01</span><div><b>知乎 OAuth 登录</b><small>真实用户 · 读取授权范围内的公开资料</small></div></div>
+        <a class="login-oauth-button" id="oauth-login" href="/auth/login">使用知乎账号继续 <span>↗</span></a>
+      </section>
+
+      <div class="login-divider" id="login-divider" hidden><span>或使用比赛体验身份</span></div>
+
+      <section class="login-method judge-method" id="judge-method" hidden>
+        <div class="login-method-title"><span class="method-index">02</span><div><b>评委体验账号</b><small>无需知乎验证码 · 凭证由比赛方单独提供</small></div></div>
+        <form id="judge-login-form">
+          <label>测试账号<input name="username" autocomplete="username" required maxlength="80" placeholder="请输入提交材料中的测试账号"></label>
+          <label>测试密码<input name="password" type="password" autocomplete="current-password" required maxlength="512" placeholder="请输入测试密码"></label>
+          <button type="submit" class="judge-login-button">进入体验空间 <span>→</span></button>
+          <p class="login-form-status" id="login-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <div class="login-unavailable" id="login-unavailable" hidden>登录方式暂未配置，请联系项目团队。</div>
+      <footer>沙盘报告仅用于自我探索，不构成心理诊断。</footer>
+    </section>
+  </main>
+</body>
+</html>

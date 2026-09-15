@@ -43,6 +43,16 @@ cd /opt/shayu
 
 ## 4. 创建生产环境变量
 
+先在服务器仓库中生成评委密码哈希。输入不会回显；命令只输出可安全保存的 scrypt 哈希：
+
+```bash
+cd /opt/shayu
+read -s -p "Judge password: " JUDGE_PASSWORD; echo
+JUDGE_HASH="$(printf '%s' "$JUDGE_PASSWORD" | npm run --silent judge:hash)"
+unset JUDGE_PASSWORD
+printf '%s\n' "$JUDGE_HASH"
+```
+
 创建仅存在于服务器的 `/opt/shayu/.env.production`：
 
 ```dotenv
@@ -54,6 +64,10 @@ ZHIHU_ACCESS_SECRET=填写数据开放平台秘钥
 ZHIHU_APP_ID=504
 ZHIHU_APP_KEY=填写OAuth秘钥
 ZHIHU_REDIRECT_URI=https://212.129.255.239/auth/callback
+JUDGE_LOGIN_ENABLED=true
+JUDGE_LOGIN_USERNAME=shayu_judge
+JUDGE_LOGIN_PASSWORD_HASH=粘贴上一步生成的完整哈希
+JUDGE_LOGIN_DISPLAY_NAME=评委体验账号
 AI_API_KEY=填写大模型API秘钥
 AI_BASE_URL=https://api.openai-next.com/v1
 AI_MODEL=gpt-5.6-sol
@@ -165,6 +179,7 @@ https://212.129.255.239/api/capabilities
 - `/api/health` 的 `community` 为 `ready`。
 - `sourceType` 为 `api`。
 - `oauthReady` 为 `true`。
+- `judgeLoginReady` 为 `true`（配置评委体验账号后）。
 - `aiReport` 为 `true`，`aiModel` 为 `gpt-5.6-sol`。
 - OAuth 登录后显示头像和用户中心。
 - 创作、关注列表和加载更多正常。

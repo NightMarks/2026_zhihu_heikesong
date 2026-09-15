@@ -446,9 +446,39 @@ footer{text-align:center;color:var(--ink-3);font-size:12px;padding:30px 0 40px}
 .followee-card p{font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .followee-card small{color:var(--ink-3);font-size:11.5px}
 .user-more{display:flex;margin:18px auto 0;min-width:140px}
+.user-more[hidden]{display:none!important}
 .user-empty{text-align:center;padding:44px 16px;color:var(--ink-3);font-size:13px}
+.profile-demo-note{display:inline-flex;margin-top:10px;padding:5px 9px;border:1px solid #d8c79e;border-radius:999px;background:#fff8e7;color:#766139;font-size:11px;font-weight:700}
+.user-content-card>strong,.followee-card strong{font-size:14px;color:var(--ink);font-weight:700}
+
+/* ===== 独立身份入口 ===== */
+.login-page{min-height:100vh;margin:0;background:#ece8df;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}
+.login-shell{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(440px,.92fr)}
+.login-scene{position:relative;overflow:hidden;display:flex;min-height:100vh;flex-direction:column;padding:44px clamp(38px,6vw,92px);color:#f8f3e8;background:radial-gradient(circle at 28% 84%,rgba(194,161,95,.42),transparent 24%),linear-gradient(145deg,rgba(32,60,50,.97),rgba(62,82,61,.9)),url('/images/sandboard.jpg') center/cover}
+.login-scene::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,rgba(7,27,21,.22),transparent 55%);pointer-events:none}
+.login-brand{position:relative;z-index:2;display:flex;align-items:center;gap:9px;width:max-content;color:#fff;text-decoration:none;font:700 19px/1 Georgia,"Songti SC",serif;letter-spacing:.04em}
+.login-brand small{padding-left:8px;border-left:1px solid rgba(255,255,255,.35);font:500 11px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.12em;color:rgba(255,255,255,.7)}
+.login-scene-copy{position:relative;z-index:2;margin:auto 0;max-width:650px;padding:70px 0}
+.login-kicker,.login-card-eyebrow{font:700 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.22em}
+.login-kicker{color:#dac38c}
+.login-scene-copy h1{margin:14px 0 24px;font:500 clamp(38px,5vw,72px)/1.18 Georgia,"Songti SC",serif;letter-spacing:-.045em}
+.login-scene-copy>p:last-child{max-width:540px;color:rgba(255,255,255,.76);font-size:15px;line-height:1.9}
+.login-privacy{position:relative;z-index:2;color:rgba(255,255,255,.58);font-size:11px;letter-spacing:.04em}
+.login-sand-orbit{position:absolute;right:-110px;bottom:-120px;width:410px;height:410px;border-radius:50%;background:radial-gradient(circle at 42% 40%,#d9c59e,#9b7e50 68%,#765c36);box-shadow:inset 8px 12px 28px rgba(255,255,255,.2),0 0 0 22px rgba(255,255,255,.035);opacity:.78;transform:rotate(-14deg)}
+.orbit-path{position:absolute;inset:90px 62px 82px;border:2px dashed rgba(71,56,32,.35);border-radius:45% 55% 51% 49%}
+.orbit-stone{position:absolute;border-radius:48% 52% 58% 42%;background:#405d4e;box-shadow:0 10px 18px rgba(32,28,20,.25)}
+.orbit-stone.one{width:43px;height:58px;left:85px;top:88px}.orbit-stone.two{width:31px;height:26px;right:78px;top:152px;background:#f1e6ce}.orbit-stone.three{width:52px;height:32px;left:160px;bottom:70px;background:#795b39}
+.login-card{display:flex;min-height:100vh;flex-direction:column;justify-content:center;padding:60px clamp(36px,7vw,100px);background:#fbfaf7}
+.login-back{position:absolute;top:34px;color:var(--ink-3);font-size:13px;text-decoration:none}.login-back:hover{color:var(--accent)}
+.login-card>header{max-width:520px;margin-bottom:30px}.login-card-eyebrow{color:var(--accent);margin-bottom:8px}.login-card h2{font:600 32px/1.3 Georgia,"Songti SC",serif;margin:0 0 10px}.login-card>header>p:last-child{color:var(--ink-2);font-size:14px;line-height:1.75}
+.login-method{max-width:520px}.login-method-title{display:flex;align-items:center;gap:13px;margin-bottom:15px}.login-method-title>div{display:grid;gap:2px}.login-method-title b{font-size:14px}.login-method-title small{color:var(--ink-3);font-size:11.5px}.method-index{display:grid;width:32px;height:32px;place-items:center;border:1px solid var(--line);border-radius:50%;color:var(--accent);font:700 10px/1 ui-monospace,Consolas,monospace}
+.login-oauth-button,.judge-login-button{display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;border:0;border-radius:10px;padding:13px 16px;text-decoration:none;font-size:14px;font-weight:700;cursor:pointer;transition:transform .18s,box-shadow .18s,opacity .18s}.login-oauth-button{background:#1772f6;color:#fff;box-shadow:0 8px 20px rgba(23,114,246,.17)}.login-oauth-button:hover,.judge-login-button:hover{transform:translateY(-1px)}
+.login-divider{display:flex;align-items:center;gap:14px;max-width:520px;margin:27px 0;color:var(--ink-3);font-size:11px}.login-divider::before,.login-divider::after{content:"";height:1px;flex:1;background:var(--line)}
+.judge-method form{display:grid;gap:13px}.judge-method label{display:grid;gap:6px;color:var(--ink-2);font-size:12px;font-weight:700}.judge-method input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px 13px;color:var(--ink);font:inherit;outline:0;transition:border-color .18s,box-shadow .18s}.judge-method input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(63,107,86,.1)}.judge-login-button{margin-top:3px;background:var(--accent);color:#fff;box-shadow:0 8px 20px rgba(63,107,86,.16)}.judge-login-button:disabled{opacity:.55;cursor:wait;transform:none}
+.login-form-status{min-height:20px;color:var(--ink-3);font-size:12px}.login-form-status.error{color:#a33f36}.login-form-status.success{color:var(--accent)}.login-unavailable{max-width:520px;padding:16px;border:1px dashed #c9b98f;border-radius:10px;background:#fff9e9;color:#705e39;font-size:13px}.login-card>footer{max-width:520px;padding:30px 0 0;text-align:left;color:var(--ink-3);font-size:11px}
 
 @media(max-width:760px){
+  .login-shell{display:block}.login-scene{min-height:310px;padding:27px 24px}.login-scene-copy{padding:54px 0 34px}.login-scene-copy h1{font-size:38px;margin-bottom:15px}.login-scene-copy>p:last-child{font-size:13px}.login-sand-orbit{width:260px;height:260px;right:-110px;bottom:-100px}.login-privacy{display:none}.login-card{min-height:calc(100vh - 310px);padding:68px 24px 42px}.login-back{top:334px}
   .topbar{height:auto;min-height:62px;padding:9px 16px;gap:8px 12px;flex-wrap:wrap}
   .logo{font-size:16px;flex:none}
   .logo small{display:none}

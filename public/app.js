@@ -228,7 +228,7 @@ const ATMOS = {
 };
 
 /* ========== 状态 ========== */
-let CAP={contentApi:false,oauth:false,loggedIn:false,user:null,aiReport:false,aiModel:null};
+let CAP={contentApi:false,oauth:false,oauthReady:false,judgeLoginReady:false,loggedIn:false,user:null,aiReport:false,aiModel:null};
 let POSTS={};              // catId -> 知乎内容数组（运行时从 API 拉取）
 let state=ShaYuState.load(CATEGORIES);
 function save(){ShaYuState.save(state)}
@@ -303,10 +303,15 @@ function updateJourneyGate(){
   button.disabled=false;
   if(CAP.loggedIn){
     button.textContent='进入我的沙盘世界 →';
-    note.textContent=`已登录为 ${CAP.user?.nick||'知乎用户'}，可以开始探索。`;
-  }else if(CAP.oauthReady){
-    button.textContent='登录知乎并开始旅程 →';
-    note.textContent='需要先完成知乎 OAuth 登录。若知乎提示网络环境异常，请关闭代理并先在同一浏览器登录知乎。';
+    const accountType=CAP.user?.authType==='judge'?'评委体验身份':'知乎账号';
+    note.textContent=`已使用${accountType} ${CAP.user?.nick||''}，可以开始探索。`;
+  }else if(CAP.oauthReady||CAP.judgeLoginReady){
+    button.textContent='选择登录方式并开始旅程 →';
+    note.textContent=CAP.oauthReady&&CAP.judgeLoginReady
+      ? '可使用知乎 OAuth，或比赛材料中的评委体验账号登录。'
+      : CAP.judgeLoginReady
+        ? '请输入比赛材料中提供的评委体验账号。'
+        : '需要先完成知乎 OAuth 登录。若知乎提示网络环境异常，请关闭代理并先在同一浏览器登录知乎。';
   }else{
     button.textContent='当前环境暂时无法登录';
     button.disabled=true;
@@ -320,9 +325,9 @@ function startJourney(){
     enterGame();
     return;
   }
-  if(CAP.oauthReady){
+  if(CAP.oauthReady||CAP.judgeLoginReady){
     const returnTo=`${location.pathname}${location.search}`;
-    location.assign(`/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
+    location.assign(`/login.html?returnTo=${encodeURIComponent(returnTo)}`);
   }
 }
 
@@ -330,15 +335,15 @@ function renderCapBar(){
   const srcLabel = CAP.sourceType==='api' ? '已接入（直连 API）'
                  : CAP.sourceType==='cli' ? '已接入（本地授权 CLI）'
                  : '未配置（用示例数据）';
-  const idLabel = CAP.loggedIn ? '已登录'
-                : CAP.oauthReady ? '可登录'
+  const idLabel = CAP.loggedIn ? (CAP.user?.authType==='judge'?'评委体验':'已登录')
+                : (CAP.oauthReady||CAP.judgeLoginReady) ? '可登录'
                 : CAP.oauth ? '待部署后可登录'
                 : CAP.sourceType==='cli' ? '本机凭证身份'
                 : '未配置 OAuth';
   const items=[
     {on:CAP.contentApi, label:'知乎内容', v:srcLabel},
     // 凭证齐备但回调不可达时算"部分可用"，不标成绿色 on，避免虚假承诺
-    {on:CAP.loggedIn||CAP.oauthReady||CAP.sourceType==='cli', label:'账号身份', v:idLabel},
+    {on:CAP.loggedIn||CAP.oauthReady||CAP.judgeLoginReady||CAP.sourceType==='cli', label:'账号身份', v:idLabel},
     {on:CAP.aiReport, label:'AI 解读', v:CAP.aiReport?(CAP.aiModel||'已配置'):'本地规则兜底'},
   ];
   $('#cap-bar').innerHTML=`<div class="cap-bar">${items.map(i=>
@@ -354,7 +359,7 @@ async function logout(){
   if($('#view-user')?.classList.contains('active')) switchView('explore');
   renderAuth();renderCapBar();updateJourneyGate();
   $('#onboard').classList.add('open');
-  toast('已退出知乎登录');
+  toast('已退出登录');
 }
 
 function openUserCenter(){
@@ -594,7 +599,8 @@ function submitRead(catId,i){
 function openVerify(catId){
   // CLI 模式下服务端本身就是"本人账号"，无需 OAuth 也可校验
   const cliMode = CAP.sourceType==='cli';
-  const canVerify = CAP.loggedIn || cliMode;
+  const judgeMode = CAP.user?.authType==='judge';
+  const canVerify = (CAP.loggedIn&&!judgeMode) || cliMode;
   $('#verify-flow').innerHTML=`
     <div class="note-inline" style="margin-bottom:18px">
       知乎开放平台<b>没有提供代替用户点赞/评论/发想法的写入接口</b>。
@@ -605,7 +611,9 @@ function openVerify(catId){
       <div class="n">1</div><div class="c">
         <div class="t">确认身份${canVerify?' ✓':''}</div>
         <div class="d">${
-          CAP.loggedIn
+          judgeMode
+          ? '当前是<b>评委体验账号</b>，不绑定任何真实知乎身份。请退出并使用知乎 OAuth 登录后校验真实创作。'
+          : CAP.loggedIn
           ? `已登录为 <b>${escapeHtml(CAP.user.nick)}</b>，可以校验创作归属。`
           : cliMode
             ? '当前为<b>本地 CLI 模式</b>：服务端使用你本机已授权的知乎凭证，可直接校验本人创作。'
@@ -1145,9 +1153,9 @@ async function enterGame(){
   renderReport();
   await probeCapabilities();
 
-  // OAuth 回跳后的提示
+  // 任一登录方式成功回跳后的提示
   if(new URLSearchParams(location.search).get('login')==='ok'){
-    toast('✓ 知乎账号已登录');
+    toast(CAP.user?.authType==='judge'?'✓ 已进入评委体验空间':'✓ 知乎账号已登录');
   }
   if(CAP.loggedIn){
     $('#onboard').classList.remove('open');
