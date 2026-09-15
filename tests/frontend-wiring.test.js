@@ -73,3 +73,8 @@ test('challenge results reuse community publishing and optional archetype matchi
   assert.match(community, /match-archetypes/);
   assert.match(community, /近期选择方式，会随新记录变化，不是心理诊断/);
 });
+
+test('starting a normal report clears stale daily challenge metadata', () => {
+  const goReport = app.match(/function goReport\(\)\{[\s\S]*?\n\}/)?.[0] || '';
+  assert.match(goReport, /state\.challengeResult=null/);
+});

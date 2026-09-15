@@ -980,7 +980,7 @@ async function exportTrayImage(){
 }
 function goReport(){
   if(!state.tray.length){toast('沙盘还是空的，先摆放一些沙具');return}
-  state.report=null;save();switchView('report');
+  state.challengeResult=null;state.report=null;save();switchView('report');
 }
 
 /* ══════════════════ 沙盘报告 ══════════════════ */
