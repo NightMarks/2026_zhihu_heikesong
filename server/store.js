@@ -2,7 +2,24 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const EMPTY_STORE = () => ({ version: 1, works: [], friendRequests: [], friendships: [] });
+const EMPTY_STORE = () => ({
+  version: 1,
+  works: [],
+  friendRequests: [],
+  friendships: [],
+  dailyChallenges: [],
+  challengeRuns: [],
+  choiceProfiles: [],
+});
+
+function normalizeCollections(data) {
+  data.friendRequests = Array.isArray(data.friendRequests) ? data.friendRequests : [];
+  data.friendships = Array.isArray(data.friendships) ? data.friendships : [];
+  data.dailyChallenges = Array.isArray(data.dailyChallenges) ? data.dailyChallenges : [];
+  data.challengeRuns = Array.isArray(data.challengeRuns) ? data.challengeRuns : [];
+  data.choiceProfiles = Array.isArray(data.choiceProfiles) ? data.choiceProfiles : [];
+  return data;
+}
 
 export class JsonStore {
   constructor(filePath) {
@@ -20,9 +37,7 @@ export class JsonStore {
       if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.works)) {
         throw new Error('社区数据格式不受支持');
       }
-      parsed.friendRequests = Array.isArray(parsed.friendRequests) ? parsed.friendRequests : [];
-      parsed.friendships = Array.isArray(parsed.friendships) ? parsed.friendships : [];
-      this.data = parsed;
+      this.data = normalizeCollections(parsed);
     } catch (error) {
       this.readOnly = true;
       this.loadError = error;

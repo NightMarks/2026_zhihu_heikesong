@@ -22,6 +22,30 @@ function fixture(t) {
   return { service, owner, visitor, input };
 }
 
+function createLegacyStoreFile(t, data) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'shayu-store-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const file = path.join(directory, 'store.json');
+  fs.writeFileSync(file, JSON.stringify(data), 'utf8');
+  return file;
+}
+
+test('legacy stores gain challenge collections without losing community data', t => {
+  const legacyWork = { id: 'legacy-work' };
+  const file = createLegacyStoreFile(t, {
+    version: 1,
+    works: [legacyWork],
+    friendRequests: [],
+    friendships: [],
+  });
+  const store = createJsonStore(file);
+
+  assert.deepEqual(store.read(data => data.works), [legacyWork]);
+  assert.deepEqual(store.read(data => data.dailyChallenges), []);
+  assert.deepEqual(store.read(data => data.challengeRuns), []);
+  assert.deepEqual(store.read(data => data.choiceProfiles), []);
+});
+
 test('public works are shared while private and friends works remain owner-only', t => {
   const { service, owner, visitor, input } = fixture(t);
   service.createWork(owner, input);
