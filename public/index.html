@@ -14,6 +14,7 @@
     <button data-view="explore" class="active">探索沙具</button>
     <button data-view="tray">我的沙盘</button>
     <button data-view="report">沙盘报告</button>
+    <button data-view="challenge">每日热题</button>
     <button data-view="community">心语社群</button>
   </nav>
   <div class="top-right">
@@ -53,6 +54,7 @@
   <section class="view" id="view-tray">
     <div class="section-title">🏖️ 我的沙盘 <span class="sub">把左侧沙具拖入沙盘，也可以点选后放置</span></div>
     <div class="hint">放置后可继续拖动调整；选中后按 Delete 或点「移除选中」撤下。完成后会直接生成完整报告。</div>
+    <div class="challenge-tray-banner" id="challenge-tray-banner" hidden></div>
     <div class="tray-layout">
       <aside class="card library">
         <h3>🧺 沙具库 <span class="pill" id="lib-count"></span></h3>
@@ -86,6 +88,11 @@
   <!-- ============ 报告 ============ -->
   <section class="view" id="view-report">
     <div id="report-area"></div>
+  </section>
+
+  <!-- ============ 每日热题 ============ -->
+  <section class="view" id="view-challenge">
+    <div id="challenge-area" aria-live="polite"></div>
   </section>
 
   <!-- ============ 社群 ============ -->
@@ -225,6 +232,9 @@
 
 <script src="js/state.js"></script>
 <script src="js/api.js"></script>
+<script src="js/tray-diff.js"></script>
+<script src="js/choice-profile.js"></script>
+<script src="js/challenge.js"></script>
 <script src="js/user-center.js"></script>
 <script src="js/community.js"></script>
 <script src="app.js"></script>

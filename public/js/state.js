@@ -17,6 +17,9 @@
       posts: [],
       communityMigrated: {},
       report: null,
+      challengeDraft: null,
+      challengeResult: null,
+      choiceProfileCache: null,
     };
   }
 
@@ -38,6 +41,21 @@
         saved.trayProcess ||= { startedAt: null, lastEditedAt: null, editCount: 0, actions: {}, nextOrder: 1 };
         saved.trayProcess.actions ||= {};
         saved.trayProcess.nextOrder ||= 1;
+        saved.tray = Array.isArray(saved.tray) ? saved.tray.map((item, index) => ({
+          ...item,
+          instanceId: typeof item?.instanceId === 'string' && item.instanceId
+            ? item.instanceId
+            : `legacy-${index}-${item?.toyId || 'toy'}`,
+        })) : [];
+        saved.challengeDraft = saved.challengeDraft && typeof saved.challengeDraft === 'object'
+          ? saved.challengeDraft
+          : null;
+        saved.challengeResult = saved.challengeResult && typeof saved.challengeResult === 'object'
+          ? saved.challengeResult
+          : null;
+        saved.choiceProfileCache = saved.choiceProfileCache && typeof saved.choiceProfileCache === 'object'
+          ? saved.choiceProfileCache
+          : null;
         return saved;
       }
     } catch { /* 损坏的浏览器存档会回退到新游戏 */ }

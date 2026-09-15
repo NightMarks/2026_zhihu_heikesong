@@ -9,6 +9,7 @@ const api = fs.readFileSync(new URL('../public/js/api.js', import.meta.url), 'ut
 const server = fs.readFileSync(new URL('../server/index.js', import.meta.url), 'utf8');
 const loginHtml = fs.readFileSync(new URL('../public/login.html', import.meta.url), 'utf8');
 const loginJs = fs.readFileSync(new URL('../public/js/login.js', import.meta.url), 'utf8');
+const state = fs.readFileSync(new URL('../public/js/state.js', import.meta.url), 'utf8');
 
 test('publish button calls the split community module', () => {
   assert.match(html, /onclick="ShaYuCommunity\.confirmPublish\(\)"/);
@@ -49,4 +50,17 @@ test('daily challenge routes are exposed to the browser client', () => {
   assert.match(api, /confirmChoiceObservation:/);
   assert.match(api, /choiceProfile:/);
   assert.match(api, /updateArchetypeSettings:/);
+});
+
+test('daily hot topic is a parallel homepage mode that reuses the tray editor', () => {
+  assert.match(html, /data-view="report">沙盘报告<\/button>\s*<button data-view="challenge">每日热题<\/button>/);
+  assert.match(html, /id="view-challenge"/);
+  assert.match(html, /id="challenge-tray-banner"/);
+  assert.ok(html.indexOf('js/tray-diff.js') < html.indexOf('js/challenge.js'));
+  assert.ok(html.indexOf('js/challenge.js') < html.indexOf('app.js'));
+  assert.match(app, /ShaYuChallenge\.init\(/);
+  assert.match(app, /snapshotTray/);
+  assert.match(app, /ShaYuChallenge\.recordAction\(action\)/);
+  assert.match(state, /challengeDraft:\s*null/);
+  assert.match(state, /choiceProfileCache:\s*null/);
 });

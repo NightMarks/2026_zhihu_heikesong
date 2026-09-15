@@ -528,6 +528,7 @@ function switchView(name){
   if(name==='community')ShaYuCommunity.open();
   if(name==='tray'){renderLibrary();renderSandbox()}
   if(name==='report') state.report?renderReport():(state.tray.length?generateReport():renderReport());
+  if(name==='challenge')ShaYuChallenge.open();
 }
 
 /* ══════════════════ 随机沙具开场 ══════════════════ */
@@ -800,6 +801,11 @@ function refreshTop(){$('#insp-total').textContent=inspTotal()}
 let selectedLib=null,selectedPlaced=-1;
 let undoStack=[],redoStack=[];
 const traySnapshot=()=>JSON.parse(JSON.stringify(state.tray));
+const snapshotTray=()=>traySnapshot().map((item,index)=>({
+  instanceId:item.instanceId||`legacy-${index}-${item.toyId}`,
+  toyId:item.toyId,x:item.x,y:item.y,rotation:Number(item.rotation)||0,scale:Number(item.scale)||1,
+}));
+const newTrayInstanceId=()=>globalThis.crypto?.randomUUID?.()||`toy-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 function recordTrayAction(action){
   const process=state.trayProcess||(state.trayProcess={startedAt:null,lastEditedAt:null,editCount:0,actions:{},nextOrder:1});
   const now=Date.now();
@@ -807,6 +813,7 @@ function recordTrayAction(action){
   process.lastEditedAt=now;
   process.editCount=(process.editCount||0)+1;
   process.actions[action]=(process.actions[action]||0)+1;
+  ShaYuChallenge.recordAction(action);
 }
 function commitTray(previous,action='adjust'){
   if(JSON.stringify(previous)===JSON.stringify(state.tray))return;
@@ -865,7 +872,7 @@ function placeToyAt(toyId,x,y){
   if(!toyOf(toyId))return;
   const previous=traySnapshot();
   const process=state.trayProcess||(state.trayProcess={startedAt:null,lastEditedAt:null,editCount:0,actions:{},nextOrder:1});
-  state.tray.push({toyId,x:Math.min(96,Math.max(4,x)),y:Math.min(94,Math.max(6,y)),rotation:0,scale:1,placedAt:Date.now(),placedOrder:process.nextOrder++});
+  state.tray.push({instanceId:newTrayInstanceId(),toyId,x:Math.min(96,Math.max(4,x)),y:Math.min(94,Math.max(6,y)),rotation:0,scale:1,placedAt:Date.now(),placedOrder:process.nextOrder++});
   selectedPlaced=state.tray.length-1;selectedLib=toyId;commitTray(previous,'place');
 }
 $('#sandbox').addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';$('#sandbox').classList.add('drop-ready')});
@@ -1232,6 +1239,22 @@ async function enterGame(){
     getState:()=>state,
     saveState:save,
     getCapabilities:()=>CAP,
+  });
+  ShaYuChoiceProfile.init({
+    api:ShaYuApi,
+    escapeHtml,
+    toast,
+    getState:()=>state,
+    saveState:save,
+  });
+  ShaYuChallenge.init({
+    api:ShaYuApi,
+    escapeHtml,
+    toast,
+    switchView,
+    snapshotTray,
+    getState:()=>state,
+    saveState:save,
   });
   refreshTop();
   shuffleRandom();

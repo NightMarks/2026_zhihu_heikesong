@@ -395,6 +395,21 @@ main{max-width:1120px;margin:0 auto;padding:26px 24px 80px}
 .comment-input-row input{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13.5px;outline:none}
 .comment-input-row input:focus{border-color:var(--accent)}
 
+/* ===== 每日热题 · 选择镜像 ===== */
+.challenge-loading,.challenge-empty{padding:56px;text-align:center;color:var(--ink-2)}
+.challenge-hero{max-width:880px;margin:0 auto;padding:clamp(28px,5vw,60px);overflow:hidden;position:relative;background:radial-gradient(circle at 90% 8%,rgba(221,192,125,.32),transparent 30%),#fff}
+.challenge-hero::after{content:"镜";position:absolute;right:24px;bottom:-80px;font:220px/1 Georgia,serif;color:var(--sand);opacity:.35;pointer-events:none}
+.challenge-eyebrow,.archetype-kicker{display:block;color:var(--accent);font:700 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.2em;text-transform:uppercase}
+.challenge-hero h1,.choice-mirror h1{position:relative;z-index:1;margin:12px 0 14px;font:600 clamp(30px,5vw,52px)/1.25 Georgia,"Songti SC",serif}
+.challenge-hero>p{position:relative;z-index:1;max-width:620px;color:var(--ink-2);font-size:16px;line-height:1.9}
+.challenge-source{display:inline-flex;margin-top:20px;padding:7px 11px;border-radius:999px;background:#edf3ef;color:var(--accent-2);font-size:12px}
+.challenge-principle{position:relative;z-index:1;margin:24px 0;padding:14px 16px;border-left:3px solid var(--warm);background:#fcf8ef;color:var(--ink-2);font-size:13px;line-height:1.7}
+.challenge-stage{max-width:760px;margin:auto;padding:38px}
+.challenge-progress{display:grid;gap:12px;margin-bottom:24px}.challenge-progress>span{color:var(--accent);font-size:12px;font-weight:700}.challenge-progress>b{font:600 24px/1.6 Georgia,"Songti SC",serif}.challenge-progress>small{color:var(--ink-3)}
+.challenge-tray-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:16px 0;padding:16px 18px;border:1px solid #d5c08d;border-radius:13px;background:linear-gradient(110deg,#fff9e9,#f4f0e6)}
+.challenge-tray-banner[hidden]{display:none}.challenge-tray-banner>div{display:grid;gap:3px}.challenge-tray-banner span{color:#8a6b28;font-size:11px;font-weight:700}.challenge-tray-banner b{font-size:14px}.challenge-tray-banner small{color:var(--ink-2);font-size:12px}
+.choice-mirror{max-width:920px;margin:auto;padding:clamp(24px,4vw,46px)}.choice-mirror-lead{max-width:700px;color:var(--ink-2);line-height:1.8}.observation-list{display:grid;gap:14px;margin-top:24px}.observation-card{padding:20px;border:1px solid var(--line);border-radius:14px;background:#fff}.observation-card.confirmed{border-color:#bdd5c7;background:#f8fbf9}.observation-card>span{color:var(--accent);font-size:10px;font-weight:800;letter-spacing:.12em}.observation-card h3{margin:6px 0;font-size:16px}.observation-card>p{color:var(--ink-2);font-size:13px;line-height:1.7}.observation-card>b{display:block;margin-top:9px;font-size:13px}.confirmation-actions,.rewrite-row,.challenge-complete-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.confirmation-actions button,.rewrite-row button{border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#fff;color:var(--ink-2);font-size:12px}.confirmation-actions button:hover,.rewrite-row button:hover{border-color:var(--accent);color:var(--accent)}.rewrite-row input{min-width:220px;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 11px}.confirmation-result{margin-top:12px;color:var(--accent);font-size:13px;font-weight:700}.challenge-confirm-hint{margin-top:18px;color:var(--ink-3);font-size:12px}.choice-profile-head{margin:34px 0 16px}.choice-profile-head p,.choice-profile-empty{color:var(--ink-2);font-size:13px}.archetype-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.archetype-card{display:grid;gap:10px;padding:18px;border:1px solid var(--line);border-radius:13px;background:#fcfbf8}.archetype-card h3{margin-top:3px}.archetype-card p{color:var(--ink-2);font-size:13px;line-height:1.7}.archetype-card small{color:var(--ink-3)}.archetype-card label{font-size:12px;color:var(--ink-2)}
+
 /* toast */
 #toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);z-index:200;background:rgba(43,38,34,.92);color:#fff;padding:10px 22px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:all .3s;max-width:80vw;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -502,4 +517,5 @@ footer{text-align:center;color:var(--ink-3);font-size:12px;padding:30px 0 40px}
   .resonance-card{grid-template-columns:120px 1fr}
   .resonance-preview{min-height:154px}
   .resonance-actions .btn{flex:1;white-space:nowrap}
+  .challenge-tray-banner{align-items:stretch;flex-direction:column}.challenge-tray-banner .btn{width:100%}.challenge-hero,.choice-mirror,.challenge-stage{padding:24px}.rewrite-row{display:grid}.rewrite-row input{min-width:0;width:100%;box-sizing:border-box}
 }
