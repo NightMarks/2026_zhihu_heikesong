@@ -43,12 +43,12 @@ cd /opt/shayu
 
 ## 4. 创建生产环境变量
 
-先在服务器仓库中生成评委密码哈希。输入不会回显；命令只输出可安全保存的 scrypt 哈希：
+先在服务器仓库中生成评委密码哈希。宿主机无需安装 Node；下面使用临时 Node 容器运行仓库中的工具。输入不会回显，命令只输出可安全保存的 scrypt 哈希：
 
 ```bash
 cd /opt/shayu
 read -s -p "Judge password: " JUDGE_PASSWORD; echo
-JUDGE_HASH="$(printf '%s' "$JUDGE_PASSWORD" | npm run --silent judge:hash)"
+JUDGE_HASH="$(printf '%s' "$JUDGE_PASSWORD" | sudo docker run --rm -i -v /opt/shayu:/app -w /app node:22-alpine node scripts/hash-judge-password.mjs)"
 unset JUDGE_PASSWORD
 printf '%s\n' "$JUDGE_HASH"
 ```

@@ -11,6 +11,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --chown=node:node public ./public
 COPY --chown=node:node server ./server
+COPY --chown=node:node scripts ./scripts
 COPY --chown=node:node data ./data
 
 USER node
