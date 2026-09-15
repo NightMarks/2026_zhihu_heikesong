@@ -619,6 +619,7 @@ async function refreshFeed(catId){
 function renderPostCard(p,i,catId){
   const key=p.url;
   const hasRead=!!state.read[key];
+  const hasOpened=!!state.inspirationClaims?.open?.[key];
   return `<div class="card zhihu-card">
     <div class="zhihu-head">
       <div class="zhihu-ava">${escapeHtml((p.author||'知')[0])}</div>
@@ -633,10 +634,10 @@ function renderPostCard(p,i,catId){
 
     <div class="zhihu-actions">
       <a class="z-btn primary" href="${p.url}" target="_blank" rel="noopener"
-         onclick="markOpened('${catId}',${i})">↗ 去知乎读原文</a>
+         onclick="markOpened('${catId}',${i})">${hasOpened?'↗ 再看原文':'↗ 去知乎读原文 +3💡'}</a>
       <button class="z-btn ${hasRead?'done':''}" onclick="toggleRead('${catId}',${i})">
         ${hasRead?'✓ 已写下感受':'✍️ 读完写感受 +1💡'}</button>
-      <button class="z-btn" onclick="openVerify('${catId}')">🔗 我在知乎回应了 +3💡</button>
+      <button class="z-btn" onclick="openVerify('${catId}')">🔗 我在知乎回应了 +5💡</button>
       <span class="z-reward">互动在知乎完成</span>
     </div>
 
@@ -652,6 +653,11 @@ function renderPostCard(p,i,catId){
 
 function markOpened(catId,i){
   const p=POSTS[catId][i];
+  const reward=ShaYuState.claimInspiration(state,catId,'open',p.url);
+  if(reward){
+    save();refreshTop();renderCatTabs(catId);renderUnlockPanel(catId);
+    toast(`💡 +${reward} 灵感值 · 已打开知乎原文`);
+  }
   // 打开原文后自动展开感受框，降低操作成本
   setTimeout(()=>{
     const box=$(`#read-${catId}-${i}`);
@@ -671,8 +677,9 @@ function submitRead(catId,i){
   const first=!state.read[p.url];
   state.read[p.url]={text:v,time:Date.now()};
   if(first){
-    state.insp[catId]+=1;
-    toast('💡 +1 灵感值（'+CATEGORIES.find(c=>c.id===catId).name+'）');
+    const reward=ShaYuState.claimInspiration(state,catId,'reflection',p.url);
+    if(reward)toast(`💡 +${reward} 灵感值（${CATEGORIES.find(c=>c.id===catId).name}）`);
+    else toast('已保存你的感受');
   }else toast('已更新你的感受');
   save();refreshTop();renderCatTabs(catId);renderZhihuFeed(catId);renderUnlockPanel(catId);
 }

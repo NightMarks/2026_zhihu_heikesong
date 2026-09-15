@@ -515,7 +515,7 @@ app.post('/api/verify-contribution', async (req, res) => {
 
     res.json({
       ok: true,
-      reward: 3,             // 真实创作奖励高于单纯阅读
+      reward: 5,             // 真实创作奖励高于打开原文和写感受
       content: {
         title: hit.Title, type: hit.ContentType, url: hit.Url,
         likes: hit.LikeCount, comments: hit.CommentCount,
